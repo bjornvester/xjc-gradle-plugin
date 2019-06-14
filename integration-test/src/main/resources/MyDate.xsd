@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:tsk="http://github.com/bjornvester"
+           targetNamespace="http://github.com/bjornvester"
+           elementFormDefault="qualified"
+           version="1.0">
+    <xs:element name="MyDate" type="tsk:MyDateType">
+    </xs:element>
+    <xs:simpleType name="MyDateType">
+        <xs:restriction base="xs:dateTime"/>
+    </xs:simpleType>
+</xs:schema>
