@@ -13,7 +13,7 @@ Apply the plugin ID "com.github.bjornvester.xjc" as specific in the [Gradle Plug
 
 ```
 plugins {
-    id("com.github.bjornvester.wsdl2java")
+  id "com.github.bjornvester.xjc" version "0.3"
 }
 ```
 
