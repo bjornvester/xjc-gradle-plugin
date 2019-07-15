@@ -16,6 +16,11 @@ dependencies {
     //compileOnly("org.glassfish.jaxb:jaxb-xjc:2.3.2") // For local development
 }
 
+tasks.withType<Wrapper> {
+    distributionType = Wrapper.DistributionType.ALL
+    gradleVersion = "5.5.1"
+}
+
 gradlePlugin {
     plugins {
         create("xjcPlugin") {
