@@ -6,8 +6,7 @@ The plugin requires Gradle version 5.4 or later.
 
 It has been tested with Java 8 and Java 11.
 
-It supports the Gradle build cache (enabled by setting "org.gradle.caching=true" in your gradle.properties file).
-This should become the default in a later version of Gradle.
+It supports the Gradle build cache (enabled by setting "org.gradle.caching=true" in your gradle.properties file; this should become the default in a later version of Gradle).
 
 It supports parallel execution (enabled with "org.gradle.caching=true", possibly along with "org.gradle.priority=low", in your gradle.properties file).
 
@@ -50,17 +49,28 @@ It will also add the dependency "jakarta.xml.bind:jakarta.xml.bind-api" to your 
 If your project is going to be deployed on a Java/Jakarta EE application server, you may want to exclude this dependency from your runtime and instead use whatever your application server is providing.
 
 ### Choosing the file encoding
-If your schemas contain characters that do not match your default platform encoding (on Windows this will be CP-1252),
+If your schemas contain characters that do not match your default platform encoding (on Windows this will probably be CP-1252),
 set the encoding through the file.encoding property for Gradle. For example, to use UTF-8, put this in your gradle.property file:
 
 ```
 org.gradle.jvmargs=-Dfile.encoding=UTF-8
 ```    
 
+## Generated warnings
+When building on INFO level or lower, you will likely see exceptions thrown on the form:
+
+```
+Property "http://javax.xml.XMLConstants/property/accessExternalSchema" is not supported by used JAXP implementation.
+org.xml.sax.SAXNotRecognizedException: Property 'http://javax.xml.XMLConstants/property/accessExternalSchema' is not recognized.
+```
+
+These are caused by the bundled Xerces parser, which does not support these properties.
+They can be ignored.
+If anyone know how to suppress them, please let me know.
+
 ## Alternatives
 If you need to be able to configure the schema compiler in more ways that is currently possible by this plugin, you may want to try the one from [rackerlabs](https://github.com/rackerlabs/gradle-jaxb-plugin).
-Here you will be able to pass arguments directly to the underlying XJC task as well as a few other nice things.
+Here you will be able to pass arguments directly to the underlying XJC task as well as a few other nice things. Just be aware that the "Gradle plumbing" of that plugin is a bit leaky, and at least I have had a lot of issues with up-to-date checking, caching and more.
 
-Just be aware that the "Gradle plumbing" of that plugin is a bit leaky, and at least I have had a lot of issues with up-to-date checking, caching and more.
 There are also a few other plugins for XJC out there, but they also seem to completely ignore the caching aspect.
 (This is also why I wrote this plugin in the first place.)
