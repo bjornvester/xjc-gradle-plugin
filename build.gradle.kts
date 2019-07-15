@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.github.bjornvester"
-version = "0.3"
+version = "1.0"
 
 allprojects {
     repositories {

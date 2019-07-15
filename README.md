@@ -15,7 +15,7 @@ Apply the plugin ID "com.github.bjornvester.xjc" as documented in the [Gradle Pl
 
 ```
 plugins {
-  id "com.github.bjornvester.xjc" version "0.3"
+  id "com.github.bjornvester.xjc" version "1.0"
 }
 ```
 
