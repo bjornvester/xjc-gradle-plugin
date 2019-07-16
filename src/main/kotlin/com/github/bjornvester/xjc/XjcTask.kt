@@ -12,6 +12,10 @@ import javax.inject.Inject
 
 @CacheableTask
 open class XjcTask @Inject constructor(private val workerExecutor: WorkerExecutor) : DefaultTask() {
+    @get:Optional
+    @get:Input
+    val defaultPackage = getXjcExtension().defaultPackage
+
     @get:InputDirectory
     @get:PathSensitive(PathSensitivity.RELATIVE)
     val xsdInputDir: DirectoryProperty = getXjcExtension().xsdDir
@@ -50,7 +54,10 @@ open class XjcTask @Inject constructor(private val workerExecutor: WorkerExecuto
 
         workerExecutor.submit(XjcWorker::class.java) { config ->
             config.isolationMode = IsolationMode.CLASSLOADER
-            config.params(xsdInputFiles, outputJavaDir.get().asFile, outputResourcesDir.get().asFile)
+            config.params(xsdInputFiles,
+                    outputJavaDir.get().asFile,
+                    outputResourcesDir.get().asFile,
+                    defaultPackage.getOrElse(""))
             config.classpath(dependentFiles)
         }
 

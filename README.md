@@ -1,12 +1,12 @@
 # xjc-gradle-plugin
-A Gradle plugin for running the XJC binding compiler to generate JAXB Java source code from XSD schemas.
+A Gradle plugin for running the XJC binding compiler to generate Java source code from XML schemas (xsd files) using JAXB.
 
 ## Requirements and features
 The plugin requires Gradle version 5.4 or later.
 
 It has been tested with Java 8 and Java 11.
 
-It supports the Gradle build cache (enabled by setting "org.gradle.caching=true" in your gradle.properties file; this should become the default in a later version of Gradle).
+It supports the Gradle build cache (enabled by setting "org.gradle.caching=true" in your gradle.properties file).
 
 It supports parallel execution (enabled with "org.gradle.caching=true", possibly along with "org.gradle.priority=low", in your gradle.properties file).
 
@@ -15,23 +15,41 @@ Apply the plugin ID "com.github.bjornvester.xjc" as documented in the [Gradle Pl
 
 ```
 plugins {
-  id "com.github.bjornvester.xjc" version "1.0"
+  id "com.github.bjornvester.xjc" version "1.1"
 }
 ```
 
-Note that at this time, the plugin is very limited and you cannot configure too much yet.
-The priority until now has been to construct a plugin out that can compile the schemas in a way that supports the Gradle build cache, up-to-date checking, project relocation (e.g. if checking out code in different folders corresponding to a branch or PR name on a build server) etc.
-The plan is to make the plugin more flexible in terms of configuration in the near future.
-
-Here is what you can currently do.
-
-### Choosing which schemas to generate source code for
-By default, it will compile all XML schemas (xsd files) found in the src/main/resource folder.
-You can change this folder through the following configuration:
+You can configure the plugin using the "xjc" extension like this:
 
 ```
 xjc {
-    xsdDir.set(project.layout.projectDirectory.dir("src/main/xsd"))
+    // Set properties here...
+}
+``` 
+
+Here is a list of all available properties:
+
+| Property               | Type           | Default                                                      | Description                                                                                         |
+|------------------------|----------------|--------------------------------------------------------------|-----------------------------------------------------------------------------------------------------|
+| xsdDir                 | Directory      | layout.projectDirectory.dir("src/main/resources")            | The directory holding the xsd files to compile.                                                     |
+| xsdFiles               | FileCollection |                                                              | The schemas to compile. If empty, all files in the xsdDir will be compiled.                         |
+| outputJavaDir          | Directory      | layout.buildDirectory.dir("generated/sources/xjc/java")      | The output directory for the generated Java sources.                                                |
+| outputResourcesDir     | Directory      | layout.buildDirectory.dir("generated/sources/xjc/resources") | The output directory for the generated resources (if any).                                          |
+| xjcVersion             | String         | 2.3.2                                                        | The version of XJC to use.                                                                          |
+| defaultPackage         | String         |                                                              | The default package for the generated Java classes. If empty, XJC will infer it from the namespace. |
+
+Note that at this time, the plugin is somewhat limited and you cannot configure anything else at the moment.
+The priority until now has been to construct a plugin out that can compile the schemas in a way that supports the Gradle build cache,
+up-to-date checking, project relocation (e.g. if checking out code in different folders corresponding to a branch or PR name on a build server) etc.
+The plan is to make the plugin more flexible in terms of configuration in the near future.
+
+### Choosing which schemas to generate source code for
+By default, it will compile all XML schemas (xsd files) found in the src/main/resource folder.
+You can change to another folder through the following configuration:
+
+```
+xjc {
+    xsdDir.set(layout.projectDirectory.dir("src/main/xsd"))
 }
 ```
 
@@ -39,7 +57,14 @@ If you don't want to compile all schemas in the folder, you can specify which on
 Note that they must still be located under the directory specified by xsdDir, or up-to-date checking might not work properly.
 
 ### Customizing the build dependencies
-By default, it will use XJC version 2.3.2 to compile the schemas. You can set another version through the xjcVersion property.
+By default, it will use XJC version 2.3.2 to compile the schemas. You can set another version through the xjcVersion property like this:
+
+```
+xjc {
+    xjcVersion.set("2.3.2")
+}
+```
+
 As it uses the Jakarta version of the tool with new Maven coordinates, the older versions from Oracle are not supported.
 You can check if there is a newer version of the tool either on the official [Github repository](https://github.com/eclipse-ee4j/jaxb-ri/releases)
 or by searching for the group and name "org.glassfish.jaxb:jaxb-xjc", e.g. through [MvnRepository](https://mvnrepository.com/artifact/org.glassfish.jaxb/jaxb-xjc).
@@ -64,7 +89,7 @@ Property "http://javax.xml.XMLConstants/property/accessExternalSchema" is not su
 org.xml.sax.SAXNotRecognizedException: Property 'http://javax.xml.XMLConstants/property/accessExternalSchema' is not recognized.
 ```
 
-These are caused by the bundled Xerces parser, which does not support these properties.
+These are caused by the Xerces parser bundled in Gradle, which does not support these properties.
 They can be ignored.
 If anyone know how to suppress them, please let me know.
 

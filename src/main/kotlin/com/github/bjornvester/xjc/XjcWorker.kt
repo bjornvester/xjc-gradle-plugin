@@ -10,9 +10,14 @@ import javax.inject.Inject
 
 open class XjcWorker @Inject constructor(private val xsdInputFiles: Set<File>,
                                          private val outputJavaDir: File,
-                                         private val outputResourceDir: File) : Runnable {
+                                         private val outputResourceDir: File,
+                                         private val defaultPackage: String) : Runnable {
     override fun run() {
         val options = Options()
+
+        if (defaultPackage.isNotBlank()) {
+            options.defaultPackage = defaultPackage
+        }
 
         xsdInputFiles.forEach {
             options.addGrammar(it)
@@ -22,6 +27,7 @@ open class XjcWorker @Inject constructor(private val xsdInputFiles: Set<File>,
         val model = ModelLoader.load(options, jCodeModel, XjcErrorReceiver())
                 ?: throw GradleException("Could not load the XJC model")
         model.generateCode(options, ErrorReceiverFilter())
+                ?: throw GradleException("Could not generate code from the XJC model")
         jCodeModel.build(outputJavaDir, outputResourceDir)
     }
 }
