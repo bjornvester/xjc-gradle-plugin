@@ -24,10 +24,13 @@ open class XjcWorker @Inject constructor(private val xsdInputFiles: Set<File>,
         }
 
         val jCodeModel = JCodeModel()
+
         val model = ModelLoader.load(options, jCodeModel, XjcErrorReceiver())
                 ?: throw GradleException("Could not load the XJC model")
-        model.generateCode(options, ErrorReceiverFilter())
+
+        model.generateCode(options, XjcErrorReceiver())
                 ?: throw GradleException("Could not generate code from the XJC model")
+
         jCodeModel.build(outputJavaDir, outputResourceDir)
     }
 }

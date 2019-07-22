@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.github.bjornvester"
-version = "1.1"
+version = "1.1.1"
 
 allprojects {
     repositories {
@@ -40,7 +40,7 @@ pluginBundle {
     (plugins) {
         "xjcPlugin" {
             displayName = "Gradle XJC plugin"
-            description = "Changes: Added a property to specify the default package for the generated Java classes"
+            description = "Changes: Better error reporting"
         }
     }
 }
