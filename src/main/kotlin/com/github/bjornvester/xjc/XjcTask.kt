@@ -25,6 +25,10 @@ open class XjcTask @Inject constructor(private val workerExecutor: WorkerExecuto
     @get:PathSensitive(PathSensitivity.RELATIVE)
     val xsdFiles = getXjcExtension().xsdFiles
 
+    @Optional
+    @Input
+    val generateEpisode = getXjcExtension().generateEpisode
+
     @get:OutputDirectory
     val outputJavaDir: DirectoryProperty = getXjcExtension().outputJavaDir
 
@@ -52,6 +56,13 @@ open class XjcTask @Inject constructor(private val workerExecutor: WorkerExecuto
         var dependentFiles = project.configurations.named(XJC_CONFIGURATION_NAME).get().resolve()
         project.logger.debug("Loading JAR files: $dependentFiles")
 
+        var episodeFilepath = ""
+
+        if (generateEpisode.get()) {
+            val episodeDir = outputResourcesDir.dir("META-INF")
+            project.mkdir(episodeDir)
+            episodeFilepath = episodeDir.get().file("sun-jaxb.episode").asFile.absolutePath
+        }
         workerExecutor.submit(XjcWorker::class.java) { config ->
             /*
             All gradle worker processes has XERCES is the classpath.
@@ -71,10 +82,11 @@ open class XjcTask @Inject constructor(private val workerExecutor: WorkerExecuto
                     xsdInputFiles,
                     outputJavaDir.get().asFile,
                     outputResourcesDir.get().asFile,
-                    defaultPackage.getOrElse(""))
+                    defaultPackage.getOrElse(""),
+                    episodeFilepath
+            )
             config.classpath(dependentFiles)
         }
-
     }
 
     private fun getXjcExtension() = project.extensions.getByName(XJC_EXTENSION_NAME) as XjcExtension

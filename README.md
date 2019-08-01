@@ -37,6 +37,7 @@ Here is a list of all available properties:
 | outputResourcesDir     | Directory      | layout.buildDirectory.dir("generated/sources/xjc/resources") | The output directory for the generated resources (if any).                                          |
 | xjcVersion             | String         | 2.3.2                                                        | The version of XJC to use.                                                                          |
 | defaultPackage         | String         |                                                              | The default package for the generated Java classes. If empty, XJC will infer it from the namespace. |
+| generateEpisode        | Boolean        | false                                                        | Whether to generate an Episode file for the generated Java classes.                                 |
 
 Note that at this time, the plugin is somewhat limited and you cannot configure anything else at the moment.
 The priority until now has been to construct a plugin out that can compile the schemas in a way that supports the Gradle build cache,
@@ -80,6 +81,20 @@ set the encoding through the file.encoding property for Gradle. For example, to 
 ```
 org.gradle.jvmargs=-Dfile.encoding=UTF-8
 ```    
+
+### Generating an episode file
+XJC can generate an episode file, which is basically an extended bindings file that specifies how the the schema types are associated with the generated Java classes.
+You can enable the generation using the generateEpisode property like this:
+
+```
+xjc {
+    generateEpisode.set(true)
+}
+```
+
+The file will be generated at META-INF/sun-jaxb.episode and added as a resource to the main source set.
+XJC can also consume this file (if it has this specific location) so that it is possible to compile java classes from a schema in one project, and consume it in XJC generators in other projects so you don't have to compile the same schemas multiple times.
+The consuming part is not yet supported by this Gradle plugin, but it is coming Real Soon Now (tm).   
 
 ## Alternatives
 If you need to be able to configure the schema compiler in more ways that is currently possible by this plugin, you may want to try the one from [rackerlabs](https://github.com/rackerlabs/gradle-jaxb-plugin).

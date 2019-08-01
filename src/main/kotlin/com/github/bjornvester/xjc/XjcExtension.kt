@@ -13,4 +13,5 @@ open class XjcExtension @Inject constructor(project: Project) {
     val outputResourcesDir: DirectoryProperty = project.objects.directoryProperty().convention(project.layout.buildDirectory.dir("generated/sources/xjc/resources"))
     val xjcVersion: Property<String> = project.objects.property(String::class.java).convention("2.3.2")
     val defaultPackage: Property<String> = project.objects.property(String::class.java)
+    val generateEpisode: Property<Boolean> = project.objects.property(Boolean::class.java).convention(false)
 }

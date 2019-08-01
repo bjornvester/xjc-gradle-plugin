@@ -41,6 +41,10 @@ class XjcPlugin : Plugin<Project> {
             }
         }
 
+        project.tasks.named(JavaPlugin.PROCESS_RESOURCES_TASK_NAME) {
+            it.dependsOn(XJC_TASK_NAME)
+        }
+
         project.tasks.named(JavaPlugin.COMPILE_JAVA_TASK_NAME) {
             it.dependsOn(XJC_TASK_NAME)
         }
