@@ -53,8 +53,22 @@ open class XjcTask @Inject constructor(private val workerExecutor: WorkerExecuto
         project.logger.debug("Loading JAR files: $dependentFiles")
 
         workerExecutor.submit(XjcWorker::class.java) { config ->
-            config.isolationMode = IsolationMode.CLASSLOADER
-            config.params(xsdInputFiles,
+            /*
+            All gradle worker processes has XERCES is the classpath.
+            This version of XERCES does not support checking for external file access (even if not used).
+            This causes it to log a whole bunch of stack traces on the form:
+            -- Property "http://javax.xml.XMLConstants/property/accessExternalSchema" is not supported by used JAXP implementation.
+            To avoid this, we fork the worker API to a separate process where we can set system properties to select which implementation of a SAXParser to use.
+            JDK 8 comes with an internal implementation of a SAXParser also based on XERCES, but supports the properties to control external file access.
+            */
+            config.isolationMode = IsolationMode.PROCESS
+            config.forkOptions.systemProperties = mapOf(
+                    "org.xml.sax.parser" to "com.sun.org.apache.xerces.internal.parsers.SAXParser",
+                    "javax.xml.parsers.DocumentBuilderFactory" to "com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl",
+                    "javax.xml.parsers.SAXParserFactory" to "com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl"
+            )
+            config.params(
+                    xsdInputFiles,
                     outputJavaDir.get().asFile,
                     outputResourcesDir.get().asFile,
                     defaultPackage.getOrElse(""))

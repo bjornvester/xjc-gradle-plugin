@@ -15,6 +15,7 @@ open class XjcWorker @Inject constructor(private val xsdInputFiles: Set<File>,
     override fun run() {
         val options = Options()
 
+        options.disableXmlSecurity = true // Avoids SAXNotRecognizedExceptions - see the note in XjcTask for additional information on this
         if (defaultPackage.isNotBlank()) {
             options.defaultPackage = defaultPackage
         }

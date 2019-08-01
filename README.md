@@ -81,18 +81,6 @@ set the encoding through the file.encoding property for Gradle. For example, to 
 org.gradle.jvmargs=-Dfile.encoding=UTF-8
 ```    
 
-## Generated warnings
-When building on INFO level or lower, you will likely see exceptions thrown on the form:
-
-```
-Property "http://javax.xml.XMLConstants/property/accessExternalSchema" is not supported by used JAXP implementation.
-org.xml.sax.SAXNotRecognizedException: Property 'http://javax.xml.XMLConstants/property/accessExternalSchema' is not recognized.
-```
-
-These are caused by the Xerces parser bundled in Gradle, which does not support these properties.
-They can be ignored.
-If anyone know how to suppress them, please let me know.
-
 ## Alternatives
 If you need to be able to configure the schema compiler in more ways that is currently possible by this plugin, you may want to try the one from [rackerlabs](https://github.com/rackerlabs/gradle-jaxb-plugin).
 Here you will be able to pass arguments directly to the underlying XJC task as well as a few other nice things. Just be aware that the "Gradle plumbing" of that plugin is a bit leaky, and at least I have had a lot of issues with up-to-date checking, caching and more.
