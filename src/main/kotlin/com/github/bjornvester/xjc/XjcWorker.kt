@@ -12,7 +12,8 @@ open class XjcWorker @Inject constructor(private val xsdInputFiles: Set<File>,
                                          private val outputJavaDir: File,
                                          private val outputResourceDir: File,
                                          private val defaultPackage: String,
-                                         private val episodeFilepath: String) : Runnable {
+                                         private val episodeFilepath: String,
+                                         private val bindFiles: Set<File>) : Runnable {
     override fun run() {
         try {
             doWork()
@@ -32,6 +33,13 @@ open class XjcWorker @Inject constructor(private val xsdInputFiles: Set<File>,
         val options = Options()
         options.disableXmlSecurity = true // Avoids SAXNotRecognizedExceptions - see the note in XjcTask for additional information on this
         configureGeneratedEpisodeFile(options)
+
+        if (bindFiles.isNotEmpty()) {
+            options.compatibilityMode = Options.EXTENSION
+            bindFiles.forEach { bindFile ->
+                options.addBindFile(bindFile)
+            }
+        }
 
         if (defaultPackage.isNotBlank()) {
             options.defaultPackage = defaultPackage

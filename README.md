@@ -8,7 +8,10 @@ It has been tested with Java 8 and Java 11.
 
 It supports the Gradle build cache (enabled by setting "org.gradle.caching=true" in your gradle.properties file).
 
-It supports parallel execution (enabled with "org.gradle.caching=true", possibly along with "org.gradle.priority=low", in your gradle.properties file).
+It supports project relocation for the build cache (e.g. you move your project to a new path, or make a new copy/clone of it).
+This is especially useful in a CI context, where you might clone PRs and/or branches for a repository in their own locations. 
+
+It supports parallel execution (enabled with "org.gradle.parallel=true", possibly along with "org.gradle.priority=low", in your gradle.properties file).
 
 ## Configuration
 Apply the plugin ID "com.github.bjornvester.xjc" as documented in the [Gradle Plugin portal page](https://plugins.gradle.org/plugin/com.github.bjornvester.xjc), e.g. like this (for the Groovy DSL):
@@ -32,17 +35,13 @@ Here is a list of all available properties:
 | Property               | Type           | Default                                                      | Description                                                                                         |
 |------------------------|----------------|--------------------------------------------------------------|-----------------------------------------------------------------------------------------------------|
 | xsdDir                 | Directory      | layout.projectDirectory.dir("src/main/resources")            | The directory holding the xsd files to compile.                                                     |
-| xsdFiles               | FileCollection |                                                              | The schemas to compile. If empty, all files in the xsdDir will be compiled.                         |
+| xsdFiles               | FileCollection | \[empty\]                                                    | The schemas to compile. If empty, all files in the xsdDir will be compiled.                         |
 | outputJavaDir          | Directory      | layout.buildDirectory.dir("generated/sources/xjc/java")      | The output directory for the generated Java sources.                                                |
 | outputResourcesDir     | Directory      | layout.buildDirectory.dir("generated/sources/xjc/resources") | The output directory for the generated resources (if any).                                          |
 | xjcVersion             | String         | 2.3.2                                                        | The version of XJC to use.                                                                          |
-| defaultPackage         | String         |                                                              | The default package for the generated Java classes. If empty, XJC will infer it from the namespace. |
+| defaultPackage         | String         | \[not set\]                                                  | The default package for the generated Java classes. If empty, XJC will infer it from the namespace. |
 | generateEpisode        | Boolean        | false                                                        | Whether to generate an Episode file for the generated Java classes.                                 |
-
-Note that at this time, the plugin is somewhat limited and you cannot configure anything else at the moment.
-The priority until now has been to construct a plugin out that can compile the schemas in a way that supports the Gradle build cache,
-up-to-date checking, project relocation (e.g. if checking out code in different folders corresponding to a branch or PR name on a build server) etc.
-The plan is to make the plugin more flexible in terms of configuration in the near future.
+| bindingFiles           | FileCollection | \[empty\]                                                    | The binding files to use in the schema compiler                                                     |
 
 ### Choosing which schemas to generate source code for
 By default, it will compile all XML schemas (xsd files) found in the src/main/resource folder.
@@ -82,8 +81,9 @@ set the encoding through the file.encoding property for Gradle. For example, to 
 org.gradle.jvmargs=-Dfile.encoding=UTF-8
 ```    
 
-### Generating an episode file
-XJC can generate an episode file, which is basically an extended bindings file that specifies how the the schema types are associated with the generated Java classes.
+### Generating episode files
+XJC can generate an episode file, which is basically an extended binding file that specifies how the the schema types are associated with the generated Java classes.
+
 You can enable the generation using the generateEpisode property like this:
 
 ```
@@ -93,8 +93,22 @@ xjc {
 ```
 
 The file will be generated at META-INF/sun-jaxb.episode and added as a resource to the main source set.
-XJC can also consume this file (if it has this specific location) so that it is possible to compile java classes from a schema in one project, and consume it in XJC generators in other projects so you don't have to compile the same schemas multiple times.
-The consuming part is not yet supported by this Gradle plugin, but it is coming Real Soon Now (tm).   
+
+### Consuming episode files
+XJC can consume the episode files so that it is possible to compile java classes from a schema in one project, and consume it in XJC generators in other projects so you don't have to compile the same schemas multiple times.
+To do this, you need to add the jar file to the configuration named "xjcBind".
+
+For multi-projects, assuming the episode file is generated in a project called "test-producer", you can do this like this:
+
+```
+dependencies {
+    implementation(project(":test-producer"))
+    xjcBind(project(":test-producer", "apiElements"))
+}
+```
+
+### Consuming binding files
+You can also provide your own binding files (or custom episode files). To to this,  
 
 ## Alternatives
 If you need to be able to configure the schema compiler in more ways that is currently possible by this plugin, you may want to try the one from [rackerlabs](https://github.com/rackerlabs/gradle-jaxb-plugin).

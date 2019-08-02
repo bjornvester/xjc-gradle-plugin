@@ -15,6 +15,7 @@ class XjcPlugin : Plugin<Project> {
         const val XJC_TASK_NAME = "xjc"
         const val XJC_EXTENSION_NAME = "xjc"
         const val XJC_CONFIGURATION_NAME = "xjc"
+        const val XJC_BIND_CONFIGURATION_NAME = "xjcBind"
     }
 
     override fun apply(project: Project) {
@@ -23,6 +24,7 @@ class XjcPlugin : Plugin<Project> {
         project.plugins.apply(JavaPlugin::class.java)
         val extension = project.extensions.create(XJC_EXTENSION_NAME, XjcExtension::class.java, project)
         val xjcConfiguration = project.configurations.maybeCreate(XJC_CONFIGURATION_NAME)
+        project.configurations.maybeCreate(XJC_BIND_CONFIGURATION_NAME)
 
         xjcConfiguration.defaultDependencies {
             it.add(project.dependencies.create("org.glassfish.jaxb:jaxb-xjc:${extension.xjcVersion.get()}"))
