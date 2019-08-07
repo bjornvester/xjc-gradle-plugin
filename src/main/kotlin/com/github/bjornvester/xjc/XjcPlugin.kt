@@ -10,7 +10,7 @@ import org.gradle.util.GradleVersion
 @Suppress("unused")
 class XjcPlugin : Plugin<Project> {
     companion object {
-        const val MINIMUM_GRADLE_VERSION = "5.4"
+        const val MINIMUM_GRADLE_VERSION = "5.6"
         const val PLUGIN_ID = "com.github.bjornvester.xjc"
         const val XJC_TASK_NAME = "xjc"
         const val XJC_EXTENSION_NAME = "xjc"

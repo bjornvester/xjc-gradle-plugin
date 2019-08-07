@@ -2,7 +2,7 @@
 A Gradle plugin for running the XJC binding compiler to generate Java source code from XML schemas (xsd files) using JAXB.
 
 ## Requirements and features
-The plugin requires Gradle version 5.4 or later.
+The plugin requires Gradle version 5.6 or later.
 
 It has been tested with Java 8 and Java 11.
 
@@ -18,7 +18,7 @@ Apply the plugin ID "com.github.bjornvester.xjc" as documented in the [Gradle Pl
 
 ```
 plugins {
-  id "com.github.bjornvester.xjc" version "1.1"
+  id "com.github.bjornvester.xjc" version "1.2"
 }
 ```
 
@@ -32,16 +32,16 @@ xjc {
 
 Here is a list of all available properties:
 
-| Property               | Type           | Default                                                      | Description                                                                                         |
-|------------------------|----------------|--------------------------------------------------------------|-----------------------------------------------------------------------------------------------------|
-| xsdDir                 | Directory      | layout.projectDirectory.dir("src/main/resources")            | The directory holding the xsd files to compile.                                                     |
-| xsdFiles               | FileCollection | \[empty\]                                                    | The schemas to compile. If empty, all files in the xsdDir will be compiled.                         |
-| outputJavaDir          | Directory      | layout.buildDirectory.dir("generated/sources/xjc/java")      | The output directory for the generated Java sources.                                                |
-| outputResourcesDir     | Directory      | layout.buildDirectory.dir("generated/sources/xjc/resources") | The output directory for the generated resources (if any).                                          |
-| xjcVersion             | String         | 2.3.2                                                        | The version of XJC to use.                                                                          |
-| defaultPackage         | String         | \[not set\]                                                  | The default package for the generated Java classes. If empty, XJC will infer it from the namespace. |
-| generateEpisode        | Boolean        | false                                                        | Whether to generate an Episode file for the generated Java classes.                                 |
-| bindingFiles           | FileCollection | \[empty\]                                                    | The binding files to use in the schema compiler                                                     |
+| Property               | Type              | Default                                                      | Description                                                                                               |
+|------------------------|-------------------|--------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
+| xsdDir                 | DirectoryProperty | layout.projectDirectory.dir("src/main/resources")            | The directory holding the xsd files to compile.                                                           |
+| xsdFiles               | FileCollection    | xsdDir.asFileTree.matching { include("**/*.xsd") }           | The schemas to compile. If empty, all files in the xsdDir will be compiled.                               |
+| outputJavaDir          | DirectoryProperty | layout.buildDirectory.dir("generated/sources/xjc/java")      | The output directory for the generated Java sources. Note that it will be deleted when running XJC.       |
+| outputResourcesDir     | DirectoryProperty | layout.buildDirectory.dir("generated/sources/xjc/resources") | The output directory for the generated resources (if any). Note that it will be deleted when running XJC. |
+| xjcVersion             | Provider<String>  | "2.3.2"                                                      | The version of XJC to use.                                                                                |
+| defaultPackage         | Provider<String>  | \[not set\]                                                  | The default package for the generated Java classes. If empty, XJC will infer it from the namespace.       |
+| generateEpisode        | Provider<Boolean> | false                                                        | Whether to generate an Episode file for the generated Java classes.                                       |
+| bindingFiles           | FileCollection    | \[empty\]                                                    | The binding files to use in the schema compiler                                                           |
 
 ### Choosing which schemas to generate source code for
 By default, it will compile all XML schemas (xsd files) found in the src/main/resource folder.
@@ -55,9 +55,19 @@ xjc {
 
 If you don't want to compile all schemas in the folder, you can specify which ones through the xsdFiles property.
 Note that they must still be located under the directory specified by xsdDir, or up-to-date checking might not work properly.
+Here is an example where all schema files are referenced relative to the xsdDir property:
+
+```
+xjc {
+    xsdFiles = project.files(xsdDir.file("MySchema1.xsd"),
+                             xsdDir.file("MySchema2.xsd"))
+    // Or
+   xsdFiles = xsdDir.asFileTree.matching { include("subfolder/MySchema.xsd") }
+```
 
 ### Customizing the build dependencies
-By default, it will use XJC version 2.3.2 to compile the schemas. You can set another version through the xjcVersion property like this:
+By default, it will use XJC version 2.3.2 to compile the schemas.
+You can set another version through the xjcVersion property like this:
 
 ```
 xjc {
@@ -75,7 +85,8 @@ If your project is going to be deployed on a Java/Jakarta EE application server,
 
 ### Choosing the file encoding
 If your schemas contain characters that do not match your default platform encoding (on Windows this will probably be CP-1252),
-set the encoding through the file.encoding property for Gradle. For example, to use UTF-8, put this in your gradle.property file:
+set the encoding through the file.encoding property for Gradle.
+For example, to use UTF-8, put this in your gradle.property file:
 
 ```
 org.gradle.jvmargs=-Dfile.encoding=UTF-8
@@ -108,7 +119,13 @@ dependencies {
 ```
 
 ### Consuming binding files
-You can also provide your own binding files (or custom episode files). To to this,  
+You can also provide your own binding files (or custom episode files) through the bindingFiles property:
+
+```
+xjc {
+    bindingFiles = project.files("$projectDir/src/main/bindings/mybinding.xjb")
+}
+```
 
 ## Alternatives
 If you need to be able to configure the schema compiler in more ways that is currently possible by this plugin, you may want to try the one from [rackerlabs](https://github.com/rackerlabs/gradle-jaxb-plugin).

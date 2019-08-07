@@ -6,21 +6,21 @@ import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.plugins.BasePlugin
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
-import org.gradle.workers.IsolationMode
 import org.gradle.workers.WorkerExecutor
-import java.io.File
 import javax.inject.Inject
 
 @CacheableTask
 open class XjcTask @Inject constructor(private val workerExecutor: WorkerExecutor) : DefaultTask() {
     @get:Optional
     @get:Input
-    val defaultPackage = getXjcExtension().defaultPackage
+    val defaultPackage: Property<String> = project.objects.property(String::class.java).convention(getXjcExtension().defaultPackage)
 
+    // Only used for up-to-date checking
     @get:InputDirectory
     @get:PathSensitive(PathSensitivity.RELATIVE)
-    val xsdInputDir: DirectoryProperty = getXjcExtension().xsdDir
+    val xsdDir: DirectoryProperty = project.objects.directoryProperty().convention(getXjcExtension().xsdDir)
 
     @Optional
     @get:InputFiles
@@ -37,7 +37,7 @@ open class XjcTask @Inject constructor(private val workerExecutor: WorkerExecuto
 
     @Optional
     @Input
-    val generateEpisode = getXjcExtension().generateEpisode
+    val generateEpisode: Property<Boolean> = project.objects.property(Boolean::class.java).convention(getXjcExtension().generateEpisode)
 
     @Optional
     @get:InputFiles
@@ -45,12 +45,12 @@ open class XjcTask @Inject constructor(private val workerExecutor: WorkerExecuto
     val bindingFiles = getXjcExtension().bindingFiles
 
     @get:OutputDirectory
-    val outputJavaDir: DirectoryProperty = getXjcExtension().outputJavaDir
+    val outputJavaDir: DirectoryProperty = project.objects.directoryProperty().convention(getXjcExtension().outputJavaDir)
 
     @get:OutputDirectory
-    val outputResourcesDir: DirectoryProperty = getXjcExtension().outputResourcesDir
+    val outputResourcesDir: DirectoryProperty = project.objects.directoryProperty().convention(getXjcExtension().outputResourcesDir)
 
-    @get:OutputDirectory
+    @get:Internal
     val tmpBindFiles: DirectoryProperty = project.objects.directoryProperty().convention(
             project.layout.buildDirectory.dir("xjc/extracted-bind-files")
     )
@@ -68,21 +68,18 @@ open class XjcTask @Inject constructor(private val workerExecutor: WorkerExecuto
         project.mkdir(outputJavaDir)
         project.mkdir(outputResourcesDir)
 
-        val xsdInputFiles = when {
-            xsdFiles.isEmpty -> xsdInputDir.asFileTree.matching { it.include("**/*.xsd") }.files
-            else -> xsdFiles.toSet()
-        }
+        logger.info("Loading XSD files ${xsdFiles.files}")
+        logger.debug("XSD files are loaded from ${xsdDir.get()}")
 
         val xjcClasspath = xjcConfiguration.get().resolve()
         logger.debug("Loading JAR files for XJC: $xjcClasspath")
 
-        val bindFiles = extractBindFilesFromJars()
+        extractBindFilesFromJars()
+        val allBindingFiles = tmpBindFiles.asFileTree.files + bindingFiles.files
 
-        if (!bindingFiles.isEmpty) {
-            bindFiles.addAll(bindingFiles)
+        if (allBindingFiles.isNotEmpty()) {
+            logger.info("Loading binding files: $allBindingFiles")
         }
-
-        logger.info("Loading binding files: $bindingFiles")
 
         var episodeFilepath = ""
 
@@ -90,33 +87,33 @@ open class XjcTask @Inject constructor(private val workerExecutor: WorkerExecuto
             val episodeDir = outputResourcesDir.dir("META-INF")
             project.mkdir(episodeDir)
             episodeFilepath = episodeDir.get().file("sun-jaxb.episode").asFile.absolutePath
+            logger.info("Generating episode file in $episodeFilepath")
         }
 
-        // TODO: See worker API improvements in https://docs.gradle.org/5.6-rc-1/release-notes.html
-        workerExecutor.submit(XjcWorker::class.java) { config ->
+        val workQueue = workerExecutor.processIsolation { config ->
             /*
             All gradle worker processes have Xerces2 on the classpath.
             This version of Xerces does not support checking for external file access (even if not used).
             This causes it to log a whole bunch of stack traces on the form:
             -- Property "http://javax.xml.XMLConstants/property/accessExternalSchema" is not supported by used JAXP implementation.
             To avoid this, we fork the worker API to a separate process where we can set system properties to select which implementation of a SAXParser to use.
-            JDK 8 comes with an internal implementation of a SAXParser, also based on XERCES, but supports the properties to control external file access.
+            The JDK comes with an internal implementation of a SAXParser, also based on Xerces, but supports the properties to control external file access.
             */
-            config.isolationMode = IsolationMode.PROCESS
             config.forkOptions.systemProperties = mapOf(
                     "javax.xml.parsers.DocumentBuilderFactory" to "com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl",
                     "javax.xml.parsers.SAXParserFactory" to "com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl",
-                    "javax.xml.validation.SchemaFactory:http://www.w3.org/2001/XMLSchema" to "org.apache.xerces.internal.jaxp.validation.XMLSchemaFactory"
+                    "javax.xml.validation.SchemaFactory:http://www.w3.org/2001/XMLSchema" to "org.apache.xerces.internal.jaxp.validation.XMLSchemaFactory",
+                    "javax.xml.accessExternalSchema" to "all"
             )
-            config.params(
-                    xsdInputFiles,
-                    outputJavaDir.get().asFile,
-                    outputResourcesDir.get().asFile,
-                    defaultPackage.getOrElse(""),
-                    episodeFilepath,
-                    bindFiles
-            )
-            config.classpath(xjcClasspath)
+            config.classpath.from(xjcClasspath)
+        }
+        workQueue.submit(XjcWorker::class.java) { params ->
+            params.xsdFiles = xsdFiles.files
+            params.outputJavaDir = outputJavaDir
+            params.outputResourceDir = outputResourcesDir
+            params.defaultPackage = defaultPackage
+            params.episodeFilepath = episodeFilepath
+            params.bindFiles = allBindingFiles
         }
     }
 
@@ -124,7 +121,7 @@ open class XjcTask @Inject constructor(private val workerExecutor: WorkerExecuto
      * While XJC supports reading bind files inside jar files, there is a file descriptor leak in Xerces
      * that causes the jar files to be locked on Windows. To avoid this, we extract the bind files ourselves.
      */
-    private fun extractBindFilesFromJars(): MutableSet<File> {
+    private fun extractBindFilesFromJars() {
         val bindJarFiles = xjcBindConfiguration.get().resolve()
         logger.debug("Loading binding JAR files: $bindJarFiles")
 
@@ -145,8 +142,6 @@ open class XjcTask @Inject constructor(private val workerExecutor: WorkerExecuto
                 logger.warn("Unknown binding file configuration type for ${bindJarFile.name}")
             }
         }
-
-        return tmpBindFiles.asFileTree.files
     }
 
     private fun getXjcExtension() = project.extensions.getByName(XJC_EXTENSION_NAME) as XjcExtension

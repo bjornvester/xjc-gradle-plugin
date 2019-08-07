@@ -5,16 +5,11 @@ import com.sun.tools.xjc.ModelLoader
 import com.sun.tools.xjc.Options
 import com.sun.tools.xjc.addon.episode.PluginImpl
 import org.gradle.api.GradleException
+import org.gradle.workers.WorkAction
 import java.io.File
-import javax.inject.Inject
 
-open class XjcWorker @Inject constructor(private val xsdInputFiles: Set<File>,
-                                         private val outputJavaDir: File,
-                                         private val outputResourceDir: File,
-                                         private val defaultPackage: String,
-                                         private val episodeFilepath: String,
-                                         private val bindFiles: Set<File>) : Runnable {
-    override fun run() {
+abstract class XjcWorker : WorkAction<XjcWorkerParams> {
+    override fun execute() {
         try {
             doWork()
         } finally {
@@ -34,18 +29,18 @@ open class XjcWorker @Inject constructor(private val xsdInputFiles: Set<File>,
         options.disableXmlSecurity = true // Avoids SAXNotRecognizedExceptions - see the note in XjcTask for additional information on this
         configureGeneratedEpisodeFile(options)
 
-        if (bindFiles.isNotEmpty()) {
+        if (parameters.bindFiles.isNotEmpty()) {
             options.compatibilityMode = Options.EXTENSION
-            bindFiles.forEach { bindFile ->
+            parameters.bindFiles.forEach { bindFile ->
                 options.addBindFile(bindFile)
             }
         }
 
-        if (defaultPackage.isNotBlank()) {
-            options.defaultPackage = defaultPackage
+        if (parameters.defaultPackage.isPresent) {
+            options.defaultPackage = parameters.defaultPackage.get()
         }
 
-        xsdInputFiles.forEach {
+        parameters.xsdFiles.forEach {
             options.addGrammar(it)
         }
 
@@ -57,24 +52,24 @@ open class XjcWorker @Inject constructor(private val xsdInputFiles: Set<File>,
         model.generateCode(options, XjcErrorReceiver())
                 ?: throw GradleException("Could not generate code from the XJC model")
 
-        jCodeModel.build(outputJavaDir, outputResourceDir)
+        jCodeModel.build(parameters.outputJavaDir.get().asFile, parameters.outputResourceDir.get().asFile)
 
         fixGeneratedEpisodeFile()
     }
 
     private fun configureGeneratedEpisodeFile(options: Options) {
-        if (episodeFilepath.isNotBlank()) {
+        if (parameters.episodeFilepath.isNotBlank()) {
             val episodePlugin = Options().allPlugins.single { it::class.java == PluginImpl::class.java } as PluginImpl
-            episodePlugin.parseArgument(options, arrayOf("-episode", episodeFilepath), 0)
+            episodePlugin.parseArgument(options, arrayOf("-episode", parameters.episodeFilepath), 0)
             options.activePlugins.add(episodePlugin)
             options.compatibilityMode = Options.EXTENSION
         }
     }
 
     private fun fixGeneratedEpisodeFile() {
-        if (episodeFilepath.isNotBlank()) {
+        if (parameters.episodeFilepath.isNotBlank()) {
             // Strip the first comment as it contains a timestamp that messes with the build cache
-            val episodeFile = File(episodeFilepath)
+            val episodeFile = File(parameters.episodeFilepath)
             episodeFile.writeText(
                     episodeFile.readText().replaceFirst(
                             Regex(" *<!--.+?-->", RegexOption.DOT_MATCHES_ALL), ""

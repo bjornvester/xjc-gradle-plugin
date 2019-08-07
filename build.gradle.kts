@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.github.bjornvester"
-version = "1.1.1"
+version = "1.2"
 
 allprojects {
     repositories {
@@ -20,7 +20,7 @@ dependencies {
 
 tasks.withType<Wrapper> {
     distributionType = Wrapper.DistributionType.ALL
-    gradleVersion = "5.5.1"
+    gradleVersion = "5.6"
 }
 
 gradlePlugin {
@@ -28,6 +28,8 @@ gradlePlugin {
         create("xjcPlugin") {
             id = "com.github.bjornvester.xjc"
             implementationClass = "com.github.bjornvester.xjc.XjcPlugin"
+            displayName = "Gradle XJC plugin"
+            description = "A plugin that generates Java source code for XML schemas (xsd files) using the XJC tool. Supports the Gradle build cache and has been tested with Java 8 and 11. Please see the Github project page for details."
         }
     }
 }
@@ -36,11 +38,14 @@ pluginBundle {
     website = "https://github.com/bjornvester/xjc-gradle-plugin"
     vcsUrl = "https://github.com/bjornvester/xjc-gradle-plugin"
     tags = listOf("xjc", "jaxb", "xsd")
-    description = "Adds the XJC tool to your project for generating Java source code for XML schemas (xsd files). Supports the Gradle build cache and has been tested with Java 8 and 11. Please see the Github project page for details."
     (plugins) {
         "xjcPlugin" {
-            displayName = "Gradle XJC plugin"
-            description = "Changes: Better error reporting"
+            description = "Changes: \n" +
+                    "- Support for generating episode files\n" +
+                    "- Support for consuming episode and binding files\n" +
+                    "- Work-around for the annoying SAXNotRecognizedExceptions in the output from XJC\n" +
+                    "- The xsdFiles property now needs to be assigned (previously needed to be configured with the 'from' method)\n" +
+                    "- The plugin now requires Gradle 5.6 or later (previously 5.4)"
         }
     }
 }
