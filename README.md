@@ -32,16 +32,16 @@ xjc {
 
 Here is a list of all available properties:
 
-| Property               | Type              | Default                                                      | Description                                                                                               |
-|------------------------|-------------------|--------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------|
-| xsdDir                 | DirectoryProperty | layout.projectDirectory.dir("src/main/resources")            | The directory holding the xsd files to compile.                                                           |
-| xsdFiles               | FileCollection    | xsdDir.asFileTree.matching { include("**/*.xsd") }           | The schemas to compile. If empty, all files in the xsdDir will be compiled.                               |
-| outputJavaDir          | DirectoryProperty | layout.buildDirectory.dir("generated/sources/xjc/java")      | The output directory for the generated Java sources. Note that it will be deleted when running XJC.       |
-| outputResourcesDir     | DirectoryProperty | layout.buildDirectory.dir("generated/sources/xjc/resources") | The output directory for the generated resources (if any). Note that it will be deleted when running XJC. |
-| xjcVersion             | Provider<String>  | "2.3.2"                                                      | The version of XJC to use.                                                                                |
-| defaultPackage         | Provider<String>  | \[not set\]                                                  | The default package for the generated Java classes. If empty, XJC will infer it from the namespace.       |
-| generateEpisode        | Provider<Boolean> | false                                                        | Whether to generate an Episode file for the generated Java classes.                                       |
-| bindingFiles           | FileCollection    | \[empty\]                                                    | The binding files to use in the schema compiler                                                           |
+| Property               | Type               | Default                                                                            | Description                                                                                                  |
+|------------------------|--------------------|------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------|
+| xsdDir                 | DirectoryProperty  | "$projectDir/src/main/resources"                                                   | The directory holding the xsd files to compile.                                                              |
+| xsdFiles               | FileCollection     | xsdDir<br>&nbsp;&nbsp;.asFileTree<br>&nbsp;&nbsp;.matching { include("**/*.xsd") } | The schemas to compile.<br>If empty, all files in the xsdDir will be compiled.                               |
+| outputJavaDir          | DirectoryProperty  | "$buildDir/generated/sources/xjc/java"                                             | The output directory for the generated Java sources.<br>Note that it will be deleted when running XJC.       |
+| outputResourcesDir     | DirectoryProperty  | "$buildDir/generated/sources/xjc/resources"                                        | The output directory for the generated resources (if any).<br>Note that it will be deleted when running XJC. |
+| xjcVersion             | Provider\<String>  | "2.3.2"                                                                            | The version of XJC to use.                                                                                   |
+| defaultPackage         | Provider\<String>  | \[not set\]                                                                        | The default package for the generated Java classes.<br>If empty, XJC will infer it from the namespace.       |
+| generateEpisode        | Provider\<Boolean> | false                                                                              | Whether to generate an Episode file for the generated Java classes.                                          |
+| bindingFiles           | FileCollection     | \[empty\]                                                                          | The binding files to use in the schema compiler                                                              |
 
 ### Choosing which schemas to generate source code for
 By default, it will compile all XML schemas (xsd files) found in the src/main/resource folder.
