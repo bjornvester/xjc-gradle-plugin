@@ -18,6 +18,12 @@ dependencies {
     compileOnly("org.glassfish.jaxb:jaxb-xjc:2.3.2")
 }
 
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile::class).all {
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_1_8.toString()
+    }
+}
+
 tasks.withType<Wrapper> {
     distributionType = Wrapper.DistributionType.ALL
     gradleVersion = "5.6"
