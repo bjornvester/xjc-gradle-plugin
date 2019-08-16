@@ -1,4 +1,9 @@
-/.idea/
+# IntelliJ IDEA
+# Everything but the codeStyle folder should be ignored
+/.idea/*
+/.idea/modules/
+/**/out/
+
+# Gradle
 /**/.gradle/
 /**/build/
-/**/out/
