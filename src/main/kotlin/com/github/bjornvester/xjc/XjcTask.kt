@@ -2,10 +2,12 @@ package com.github.bjornvester.xjc
 
 import com.github.bjornvester.xjc.XjcPlugin.Companion.XJC_EXTENSION_NAME
 import org.gradle.api.DefaultTask
+import org.gradle.api.GradleException
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.plugins.BasePlugin
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
 import org.gradle.workers.WorkerExecutor
@@ -32,6 +34,10 @@ open class XjcTask @Inject constructor(private val workerExecutor: WorkerExecuto
             .named(XjcPlugin.XJC_CONFIGURATION_NAME)
 
     @get:Classpath
+    val xjcPluginsConfiguration: NamedDomainObjectProvider<Configuration> = project.configurations
+            .named(XjcPlugin.XJC_PLUGINS_CONFIGURATION_NAME)
+
+    @get:Classpath
     val xjcBindConfiguration: NamedDomainObjectProvider<Configuration> = project.configurations
             .named(XjcPlugin.XJC_BIND_CONFIGURATION_NAME)
 
@@ -43,6 +49,12 @@ open class XjcTask @Inject constructor(private val workerExecutor: WorkerExecuto
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
     val bindingFiles = getXjcExtension().bindingFiles
+
+    @get:Input
+    val options: ListProperty<String> = project.objects.listProperty(String::class.java).convention(getXjcExtension().options)
+
+    @get:Input
+    val markGenerated: Property<Boolean> = project.objects.property(Boolean::class.java).convention(getXjcExtension().markGenerated)
 
     @get:OutputDirectory
     val outputJavaDir: DirectoryProperty = project.objects.directoryProperty().convention(getXjcExtension().outputJavaDir)
@@ -68,10 +80,12 @@ open class XjcTask @Inject constructor(private val workerExecutor: WorkerExecuto
         project.mkdir(outputJavaDir)
         project.mkdir(outputResourcesDir)
 
+        validateOptions()
+
         logger.info("Loading XSD files ${xsdFiles.files}")
         logger.debug("XSD files are loaded from ${xsdDir.get()}")
 
-        val xjcClasspath = xjcConfiguration.get().resolve()
+        val xjcClasspath = xjcConfiguration.get().resolve() + xjcPluginsConfiguration
         logger.debug("Loading JAR files for XJC: $xjcClasspath")
 
         extractBindFilesFromJars()
@@ -105,15 +119,43 @@ open class XjcTask @Inject constructor(private val workerExecutor: WorkerExecuto
                     "javax.xml.validation.SchemaFactory:http://www.w3.org/2001/XMLSchema" to "org.apache.xerces.internal.jaxp.validation.XMLSchemaFactory",
                     "javax.xml.accessExternalSchema" to "all"
             )
+
+            if (logger.isDebugEnabled) {
+                // This adds debugging information on the XJC method used to find and load services (plugins)
+                config.forkOptions.systemProperties["com.sun.tools.xjc.Options.findServices"] = ""
+            }
+
             config.classpath.from(xjcClasspath)
         }
+
+        System.setProperty("com.sun.tools.xjc.Options.findServices", "true")
+
         workQueue.submit(XjcWorker::class.java) { params ->
             params.xsdFiles = xsdFiles.files
-            params.outputJavaDir = outputJavaDir
-            params.outputResourceDir = outputResourcesDir
+            params.outputJavaDir = outputJavaDir.get().asFile
+            params.outputResourceDir = outputResourcesDir.get().asFile
             params.defaultPackage = defaultPackage
             params.episodeFilepath = episodeFilepath
             params.bindFiles = allBindingFiles
+            params.verbose = logger.isDebugEnabled
+            params.options = options.get()
+            params.markGenerated = markGenerated.get()
+        }
+    }
+
+    private fun validateOptions() {
+        val prohibitedOptions = mapOf(
+                "-classpath" to "Leads to resource leaks. Use the 'xjc', 'xjcBindings' or 'xjcPlugins' configuration instead",
+                "-d" to "Configured through the 'outputJavaDir' property",
+                "-b" to "Configured through the 'bindingFiles' property",
+                "-p" to "Configured through the 'defaultPackage' property",
+                "-episode" to "Configured through the 'generateEpisode' property",
+                "-mark-generated" to "Configured through the 'markGenerated' property"
+        )
+        options.get().forEach { option ->
+            if (prohibitedOptions.containsKey(option)) {
+                throw GradleException("the option '$option' is not allowed in this plugin. Reason: ${prohibitedOptions[option]}")
+            }
         }
     }
 

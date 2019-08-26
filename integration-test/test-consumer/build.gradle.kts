@@ -9,11 +9,20 @@ repositories {
 
 dependencies {
     implementation(project(":test-producer"))
-    xjcBind(project(":test-producer", "apiElements"))
+    implementation("org.jvnet.jaxb2_commons:jaxb2-basics-runtime:1.11.1") // Though called "runtime", it is required at compile time...
+
+    xjcBindings(project(":test-producer", "apiElements"))
+    xjcPlugins("org.jvnet.jaxb2_commons:jaxb2-basics:1.11.1")
+
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.5.1")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.5.1")
 }
 
 tasks.test {
     useJUnitPlatform()
+}
+
+xjc {
+    xsdDir.set(project.file("$projectDir/src/main/custom-xsd-folder"))
+    options.add("-Xcopyable")
 }

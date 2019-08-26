@@ -3,6 +3,7 @@ package com.github.bjornvester.xjc
 import org.gradle.api.Project
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileCollection
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import javax.inject.Inject
 
@@ -15,4 +16,6 @@ open class XjcExtension @Inject constructor(project: Project) {
     val defaultPackage: Property<String> = project.objects.property(String::class.java)
     val generateEpisode: Property<Boolean> = project.objects.property(Boolean::class.java).convention(false)
     var bindingFiles: FileCollection = project.objects.fileCollection()
+    val options: ListProperty<String> = project.objects.listProperty(String::class.java)
+    val markGenerated: Property<Boolean> = project.objects.property(Boolean::class.java).convention(false)
 }

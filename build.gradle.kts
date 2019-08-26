@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.github.bjornvester"
-version = "1.2"
+version = "1.3"
 
 allprojects {
     repositories {
@@ -46,12 +46,10 @@ pluginBundle {
     tags = listOf("xjc", "jaxb", "xsd")
     (plugins) {
         "xjcPlugin" {
-            description = "Changes: \n" +
-                    "- Support for generating episode files\n" +
-                    "- Support for consuming episode and binding files\n" +
-                    "- Work-around for the annoying SAXNotRecognizedExceptions in the output from XJC\n" +
-                    "- The xsdFiles property now needs to be assigned (previously needed to be configured with the 'from' method)\n" +
-                    "- The plugin now requires Gradle 5.6 or later (previously 5.4)"
+            description = "Changes:\n" +
+                    "- Support for third-party plugins\n" +
+                    "- Renamed the 'xjcBind' configuration to 'xjcBindings'\n"
+                    "- Support for marking the generated code with the @Generated annotation"
         }
     }
 }
