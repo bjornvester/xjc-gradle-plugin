@@ -1,4 +1,4 @@
-[![Gradle Plugin Release](https://img.shields.io/badge/gradle%20plugin-1.3-blue.svg?logo=data:image/svg+xml;base64,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA5MCA2Ni4wNiI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiNmZmY7fTwvc3R5bGU+PC9kZWZzPjx0aXRsZT5ncmFkbGUtZWxlcGhhbnQtaWNvbi13aGl0ZS1wcmltYXJ5PC90aXRsZT48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik04NS4xMSw0LjE4YTE0LjI3LDE0LjI3LDAsMCwwLTE5LjgzLS4zNCwxLjM4LDEuMzgsMCwwLDAsMCwyTDY3LDcuNmExLjM2LDEuMzYsMCwwLDAsMS43OC4xMkE4LjE4LDguMTgsMCwwLDEsNzkuNSwyMC4wNkM2OC4xNywzMS4zOCw1My4wNS0uMzYsMTguNzMsMTZhNC42NSw0LjY1LDAsMCwwLTIsNi41NGw1Ljg5LDEwLjE3YTQuNjQsNC42NCwwLDAsMCw2LjMsMS43M2wuMTQtLjA4LS4xMS4wOEwzMS41MywzM2E2MC4yOSw2MC4yOSwwLDAsMCw4LjIyLTYuMTMsMS40NCwxLjQ0LDAsMCwxLDEuODctLjA2aDBhMS4zNCwxLjM0LDAsMCwxLC4wNiwyQTYxLjYxLDYxLjYxLDAsMCwxLDMzLDM1LjM0bC0uMDksMC0yLjYxLDEuNDZhNy4zNCw3LjM0LDAsMCwxLTMuNjEuOTQsNy40NSw3LjQ1LDAsMCwxLTYuNDctMy43MWwtNS41Ny05LjYxQzQsMzItMi41NCw0Ni41NiwxLDY1YTEuMzYsMS4zNiwwLDAsMCwxLjMzLDEuMTFIOC42MUExLjM2LDEuMzYsMCwwLDAsMTAsNjQuODdhOS4yOSw5LjI5LDAsMCwxLDE4LjQyLDAsMS4zNSwxLjM1LDAsMCwwLDEuMzQsMS4xOUgzNS45YTEuMzYsMS4zNiwwLDAsMCwxLjM0LTEuMTksOS4yOSw5LjI5LDAsMCwxLDE4LjQyLDBBMS4zNiwxLjM2LDAsMCwwLDU3LDY2LjA2SDYzLjFhMS4zNiwxLjM2LDAsMCwwLDEuMzYtMS4zNGMuMTQtOC42LDIuNDYtMTguNDgsOS4wNy0yMy40M0M5Ni40MywyNC4xNiw5MC40MSw5LjQ4LDg1LjExLDQuMThaTTYxLjc2LDMwLjA1bC00LjM3LTIuMTloMGEyLjc0LDIuNzQsMCwxLDEsNC4zNywyLjJaIi8+PC9zdmc+)](https://plugins.gradle.org/plugin/com.github.bjornvester.xjc)
+[![Gradle Plugin Release](https://img.shields.io/badge/Gradle%20plugin-1.3-blue.svg?logo=data:image/svg+xml;base64,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA5MCA2Ni4wNiI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiNmZmY7fTwvc3R5bGU+PC9kZWZzPjx0aXRsZT5ncmFkbGUtZWxlcGhhbnQtaWNvbi13aGl0ZS1wcmltYXJ5PC90aXRsZT48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik04NS4xMSw0LjE4YTE0LjI3LDE0LjI3LDAsMCwwLTE5LjgzLS4zNCwxLjM4LDEuMzgsMCwwLDAsMCwyTDY3LDcuNmExLjM2LDEuMzYsMCwwLDAsMS43OC4xMkE4LjE4LDguMTgsMCwwLDEsNzkuNSwyMC4wNkM2OC4xNywzMS4zOCw1My4wNS0uMzYsMTguNzMsMTZhNC42NSw0LjY1LDAsMCwwLTIsNi41NGw1Ljg5LDEwLjE3YTQuNjQsNC42NCwwLDAsMCw2LjMsMS43M2wuMTQtLjA4LS4xMS4wOEwzMS41MywzM2E2MC4yOSw2MC4yOSwwLDAsMCw4LjIyLTYuMTMsMS40NCwxLjQ0LDAsMCwxLDEuODctLjA2aDBhMS4zNCwxLjM0LDAsMCwxLC4wNiwyQTYxLjYxLDYxLjYxLDAsMCwxLDMzLDM1LjM0bC0uMDksMC0yLjYxLDEuNDZhNy4zNCw3LjM0LDAsMCwxLTMuNjEuOTQsNy40NSw3LjQ1LDAsMCwxLTYuNDctMy43MWwtNS41Ny05LjYxQzQsMzItMi41NCw0Ni41NiwxLDY1YTEuMzYsMS4zNiwwLDAsMCwxLjMzLDEuMTFIOC42MUExLjM2LDEuMzYsMCwwLDAsMTAsNjQuODdhOS4yOSw5LjI5LDAsMCwxLDE4LjQyLDAsMS4zNSwxLjM1LDAsMCwwLDEuMzQsMS4xOUgzNS45YTEuMzYsMS4zNiwwLDAsMCwxLjM0LTEuMTksOS4yOSw5LjI5LDAsMCwxLDE4LjQyLDBBMS4zNiwxLjM2LDAsMCwwLDU3LDY2LjA2SDYzLjFhMS4zNiwxLjM2LDAsMCwwLDEuMzYtMS4zNGMuMTQtOC42LDIuNDYtMTguNDgsOS4wNy0yMy40M0M5Ni40MywyNC4xNiw5MC40MSw5LjQ4LDg1LjExLDQuMThaTTYxLjc2LDMwLjA1bC00LjM3LTIuMTloMGEyLjc0LDIuNzQsMCwxLDEsNC4zNywyLjJaIi8+PC9zdmc+)](https://plugins.gradle.org/plugin/com.github.bjornvester.xjc)
 [![GitHub Actions status](https://github.com/bjornvester/xjc-gradle-plugin/workflows/CI/badge.svg)](https://github.com/bjornvester/xjc-gradle-plugin/actions)
 
 # xjc-gradle-plugin
@@ -7,7 +7,7 @@ A Gradle plugin for running the XJC binding compiler to generate Java source cod
 ## Requirements and features
 * **The plugin requires Gradle version 5.6 or later**.
 
-* It has been tested with Java 8 and Java 11.
+* It has been tested with Java 8 and Java 12.
 
 * It supports XJC version 2.3.2 and later (from Jakarta EE).
 
@@ -17,6 +17,8 @@ A Gradle plugin for running the XJC binding compiler to generate Java source cod
 This is especially useful in a CI context, where you might clone PRs and/or branches for a repository in their own locations. 
 
 * It supports parallel execution (enabled with "org.gradle.parallel=true", possibly along with "org.gradle.priority=low", in your gradle.properties file).
+
+* It supports _most_, but not all (yet), of the functionality provided by XJC. Check the configuration section and the road map section to get an idea of what is possible.
 
 ## Configuration
 Apply the plugin ID "com.github.bjornvester.xjc" as documented in the [Gradle Plugin portal page](https://plugins.gradle.org/plugin/com.github.bjornvester.xjc), e.g. like this (for the Groovy DSL):
@@ -39,14 +41,14 @@ Here is a list of all available properties:
 
 | Property           | Type                  | Default                                                                            | Description                                                                                                  |
 |--------------------|-----------------------|------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------|
-| xsdDir             | DirectoryProperty     | "$projectDir/src/main/resources"                                                   | The directory holding the xsd files to compile.                                                              |
+| xsdDir             | DirectoryProperty     | "$projectDir/src<br>/main/resources"                                               | The directory holding the xsd files to compile.                                                              |
 | xsdFiles           | FileCollection        | xsdDir<br>&nbsp;&nbsp;.asFileTree<br>&nbsp;&nbsp;.matching { include("**/*.xsd") } | The schemas to compile.<br>If empty, all files in the xsdDir will be compiled.                               |
-| outputJavaDir      | DirectoryProperty     | "$buildDir/generated/sources/xjc/java"                                             | The output directory for the generated Java sources.<br>Note that it will be deleted when running XJC.       |
-| outputResourcesDir | DirectoryProperty     | "$buildDir/generated/sources/xjc/resources"                                        | The output directory for the generated resources (if any).<br>Note that it will be deleted when running XJC. |
+| outputJavaDir      | DirectoryProperty     | "$buildDir/generated<br>/sources/xjc/java"                                         | The output directory for the generated Java sources.<br>Note that it will be deleted when running XJC.       |
+| outputResourcesDir | DirectoryProperty     | "$buildDir/generated<br>/sources/xjc/resources"                                    | The output directory for the generated resources (if any).<br>Note that it will be deleted when running XJC. |
 | xjcVersion         | Provider\<String>     | "2.3.2"                                                                            | The version of XJC to use.                                                                                   |
 | defaultPackage     | Provider\<String>     | \[not set\]                                                                        | The default package for the generated Java classes.<br>If empty, XJC will infer it from the namespace.       |
 | generateEpisode    | Provider\<Boolean>    | false                                                                              | If true, generates an Episode file for the generated Java classes.                                           |
-| markGenerated      | Provider\<Boolean>    | true                                                                               | If true, marks the generated code with the annotation @javax.annotation.Generated.                           |
+| markGenerated      | Provider\<Boolean>    | true                                                                               | If true, marks the generated code with the annotation `@javax.annotation.Generated`.                           |
 | bindingFiles       | FileCollection        | \[empty\]                                                                          | The binding files to use in the schema compiler                                                              |
 | options            | ListProperty\<String> | \[empty\]                                                                          | Options to pass to either the XJC core, or to third party plugins in the `xjcPlugins` configuration          |
 
@@ -101,6 +103,15 @@ For example, to use UTF-8, put this in your gradle.property file:
 org.gradle.jvmargs=-Dfile.encoding=UTF-8
 ```
 
+If you are on a POSIX operating system (e.g. Linux), you may in addition to this need to set your operating system locale to one that supports your encoding.
+Otherwise, Java (and therefore also Gradle and XJC) may not be able to create files with names outside of what your default locale supports.
+Especially some Docker images, like the Java ECR images from AWS, is by default set to a locale supporting ASCII only.
+If this is the case for you, and you want to use UTF-8, you could export an environment variable like this:
+
+```
+export LANG=en_US.UTF-8
+```
+
 ### Enabling the use of the @Generated annotation
 If you like to have the generated source code marked with the `@javax.annotation.Generated` annotation, set the `markGenerated` property to true like this:
 
@@ -111,7 +122,7 @@ xjc {
 ``` 
 
 Note that while this annotation is found in the Java 8 SDK, it is not present in Java 9 and later.
-(However, there is a `javax.annotation.processing.Generated`, but this is not yet supported by this plugin.)
+(However, there is a `@javax.annotation.processing.Generated` annotation, notice the `processing` sub-package, but this is not yet supported by this plugin.)
 
 ### Generating episode files
 XJC can generate an episode file, which is basically an extended binding file that specifies how the the schema types are associated with the generated Java classes.
@@ -166,22 +177,23 @@ xjc {
 
 If you have trouble activating a plugin and is unsure whether it has been registered, you can run Gradle with the --debug option.
 This will print additional information on what plugins were found, what their option names are, and what plugins were activated.
+Note that in order to activate a third-party plugin, you must always provide at least one option (and usually just one) from the plugin.
 
 ## Road map
 Here are some of the features not yet implemented but I have planned for whenever I get the time.
 
 Consumer facing:
-* Support the "-mark-generated" option in XJC, causing it to mark code with the Generated annotation.
 * Support the "-npa" option in XJC, suppressing the generation of package level annotations.
 * Support for catalog files.
 * Support for schemas in wsdl files.
 * Support for optionally adding "if-exists" attributes to generated episode files to prevent failures on unreferenced schemas. 
 * Support for choosing which, if any, Gradle configuration to add the required dependencies to (e.g. `implementation`, `compileOnly` or none).
 * Support for the @Generated annotation on Java 9+
+* Document how to use the XJC task directly (for having multiple XJC tasks in the same Gradle project)
 
 Internal:
-* Automatic CI builds (e.g. using Travis, the upcoming Github Actions, or something else).
-* Automatic test with both Java 8 and 11 (right now it is done manually).
+* Automatic test of the integration-test project (it is currently tested manually)
+* Add additional tests or additional assertions to the current ones
 
 You are welcome to create issues and PRs for anything else.
  
