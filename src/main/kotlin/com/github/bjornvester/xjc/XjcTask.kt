@@ -27,7 +27,7 @@ open class XjcTask @Inject constructor(private val workerExecutor: WorkerExecuto
     @Optional
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
-    val xsdFiles = getXjcExtension().xsdFiles
+    var xsdFiles = getXjcExtension().xsdFiles
 
     @get:Classpath
     val xjcConfiguration: NamedDomainObjectProvider<Configuration> = project.configurations
@@ -48,7 +48,7 @@ open class XjcTask @Inject constructor(private val workerExecutor: WorkerExecuto
     @Optional
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
-    val bindingFiles = getXjcExtension().bindingFiles
+    var bindingFiles = getXjcExtension().bindingFiles
 
     @get:Input
     val options: ListProperty<String> = project.objects.listProperty(String::class.java).convention(getXjcExtension().options)
@@ -79,6 +79,9 @@ open class XjcTask @Inject constructor(private val workerExecutor: WorkerExecuto
         project.delete(tmpBindFiles)
         project.mkdir(outputJavaDir)
         project.mkdir(outputResourcesDir)
+
+        xsdFiles = getXjcExtension().xsdFiles
+        bindingFiles = getXjcExtension().bindingFiles
 
         validateOptions()
 
