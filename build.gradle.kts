@@ -1,11 +1,11 @@
 plugins {
-    kotlin("jvm") version "1.3.50"
+    kotlin("jvm") version "1.3.72"
     id("java-gradle-plugin")
-    id("com.gradle.plugin-publish") version "0.10.1"
+    id("com.gradle.plugin-publish") version "0.12.0"
 }
 
 group = "com.github.bjornvester"
-version = "1.3"
+version = "1.4"
 
 allprojects {
     repositories {
@@ -15,7 +15,7 @@ allprojects {
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
-    compileOnly("org.glassfish.jaxb:jaxb-xjc:2.3.2")
+    compileOnly("org.glassfish.jaxb:jaxb-xjc:2.3.3")
 }
 
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile::class).all {
@@ -26,7 +26,7 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile::class).all {
 
 tasks.withType<Wrapper> {
     distributionType = Wrapper.DistributionType.ALL
-    gradleVersion = "5.6.2"
+    gradleVersion = "6.5"
 }
 
 gradlePlugin {
