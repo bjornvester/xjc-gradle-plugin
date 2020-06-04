@@ -48,7 +48,7 @@ pluginBundle {
         "xjcPlugin" {
             description = "Changes:\n" +
                     "- Support for third-party plugins\n" +
-                    "- Renamed the 'xjcBind' configuration to 'xjcBindings'\n"
+                    "- Renamed the 'xjcBind' configuration to 'xjcBindings'\n" +
                     "- Support for marking the generated code with the @Generated annotation"
         }
     }
