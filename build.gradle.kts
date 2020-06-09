@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.github.bjornvester"
-version = "1.3"
+version = "1.4"
 
 allprojects {
     repositories {
@@ -47,9 +47,7 @@ pluginBundle {
     (plugins) {
         "xjcPlugin" {
             description = "Changes:\n" +
-                    "- Support for third-party plugins\n" +
-                    "- Renamed the 'xjcBind' configuration to 'xjcBindings'\n"
-                    "- Support for marking the generated code with the @Generated annotation"
+                    "- Upgrade default version of XJC from version 2.3.2 to 2.3.3"
         }
     }
 }
