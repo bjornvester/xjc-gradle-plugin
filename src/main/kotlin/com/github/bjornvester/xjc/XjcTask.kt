@@ -6,6 +6,9 @@ import org.gradle.api.GradleException
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.FileSystemOperations
+import org.gradle.api.file.ProjectLayout
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
@@ -14,15 +17,18 @@ import org.gradle.workers.WorkerExecutor
 import javax.inject.Inject
 
 @CacheableTask
-open class XjcTask @Inject constructor(private val workerExecutor: WorkerExecutor) : DefaultTask() {
+open class XjcTask @Inject constructor(private val workerExecutor: WorkerExecutor,
+                                       objectFactory: ObjectFactory,
+                                       projectLayout: ProjectLayout,
+                                       private val fileSystemOperations: FileSystemOperations) : DefaultTask() {
     @get:Optional
     @get:Input
-    val defaultPackage: Property<String> = project.objects.property(String::class.java).convention(getXjcExtension().defaultPackage)
+    val defaultPackage: Property<String> = objectFactory.property(String::class.java).convention(getXjcExtension().defaultPackage)
 
     // Only used for up-to-date checking
     @get:InputDirectory
     @get:PathSensitive(PathSensitivity.RELATIVE)
-    val xsdDir: DirectoryProperty = project.objects.directoryProperty().convention(getXjcExtension().xsdDir)
+    val xsdDir: DirectoryProperty = objectFactory.directoryProperty().convention(getXjcExtension().xsdDir)
 
     @Optional
     @get:InputFiles
@@ -30,20 +36,17 @@ open class XjcTask @Inject constructor(private val workerExecutor: WorkerExecuto
     val xsdFiles = getXjcExtension().xsdFiles
 
     @get:Classpath
-    val xjcConfiguration: NamedDomainObjectProvider<Configuration> = project.configurations
-            .named(XjcPlugin.XJC_CONFIGURATION_NAME)
+    val xjcConfiguration: NamedDomainObjectProvider<Configuration> = project.configurations.named(XjcPlugin.XJC_CONFIGURATION_NAME)
 
     @get:Classpath
-    val xjcPluginsConfiguration: NamedDomainObjectProvider<Configuration> = project.configurations
-            .named(XjcPlugin.XJC_PLUGINS_CONFIGURATION_NAME)
+    val xjcPluginsConfiguration: NamedDomainObjectProvider<Configuration> = project.configurations.named(XjcPlugin.XJC_PLUGINS_CONFIGURATION_NAME)
 
     @get:Classpath
-    val xjcBindConfiguration: NamedDomainObjectProvider<Configuration> = project.configurations
-            .named(XjcPlugin.XJC_BIND_CONFIGURATION_NAME)
+    val xjcBindConfiguration: NamedDomainObjectProvider<Configuration> = project.configurations.named(XjcPlugin.XJC_BIND_CONFIGURATION_NAME)
 
     @Optional
     @Input
-    val generateEpisode: Property<Boolean> = project.objects.property(Boolean::class.java).convention(getXjcExtension().generateEpisode)
+    val generateEpisode: Property<Boolean> = objectFactory.property(Boolean::class.java).convention(getXjcExtension().generateEpisode)
 
     @Optional
     @get:InputFiles
@@ -51,21 +54,19 @@ open class XjcTask @Inject constructor(private val workerExecutor: WorkerExecuto
     val bindingFiles = getXjcExtension().bindingFiles
 
     @get:Input
-    val options: ListProperty<String> = project.objects.listProperty(String::class.java).convention(getXjcExtension().options)
+    val options: ListProperty<String> = objectFactory.listProperty(String::class.java).convention(getXjcExtension().options)
 
     @get:Input
-    val markGenerated: Property<Boolean> = project.objects.property(Boolean::class.java).convention(getXjcExtension().markGenerated)
+    val markGenerated: Property<Boolean> = objectFactory.property(Boolean::class.java).convention(getXjcExtension().markGenerated)
 
     @get:OutputDirectory
-    val outputJavaDir: DirectoryProperty = project.objects.directoryProperty().convention(getXjcExtension().outputJavaDir)
+    val outputJavaDir: DirectoryProperty = objectFactory.directoryProperty().convention(getXjcExtension().outputJavaDir)
 
     @get:OutputDirectory
-    val outputResourcesDir: DirectoryProperty = project.objects.directoryProperty().convention(getXjcExtension().outputResourcesDir)
+    val outputResourcesDir: DirectoryProperty = objectFactory.directoryProperty().convention(getXjcExtension().outputResourcesDir)
 
     @get:Internal
-    val tmpBindFiles: DirectoryProperty = project.objects.directoryProperty().convention(
-            project.layout.buildDirectory.dir("xjc/extracted-bind-files")
-    )
+    val tmpBindFiles: DirectoryProperty = objectFactory.directoryProperty().convention(projectLayout.buildDirectory.dir("xjc/extracted-bind-files"))
 
     init {
         group = BasePlugin.BUILD_GROUP
@@ -74,11 +75,11 @@ open class XjcTask @Inject constructor(private val workerExecutor: WorkerExecuto
 
     @TaskAction
     fun doCodeGeneration() {
-        project.delete(outputJavaDir)
-        project.delete(outputResourcesDir)
-        project.delete(tmpBindFiles)
-        project.mkdir(outputJavaDir)
-        project.mkdir(outputResourcesDir)
+        fileSystemOperations.delete { it.delete(outputJavaDir) }
+        fileSystemOperations.delete { it.delete(outputResourcesDir) }
+        fileSystemOperations.delete { it.delete(tmpBindFiles) }
+        outputJavaDir.get().asFile.mkdirs()
+        outputResourcesDir.get().asFile.mkdirs()
 
         validateOptions()
 
@@ -99,7 +100,7 @@ open class XjcTask @Inject constructor(private val workerExecutor: WorkerExecuto
 
         if (generateEpisode.get()) {
             val episodeDir = outputResourcesDir.dir("META-INF")
-            project.mkdir(episodeDir)
+            episodeDir.get().asFile.mkdirs()
             episodeFilepath = episodeDir.get().file("sun-jaxb.episode").asFile.absolutePath
             logger.info("Generating episode file in $episodeFilepath")
         }
