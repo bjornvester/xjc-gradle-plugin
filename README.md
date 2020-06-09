@@ -25,15 +25,15 @@ This is especially useful in a CI context, where you might clone PRs and/or bran
 ## Configuration
 Apply the plugin ID "com.github.bjornvester.xjc" as documented in the [Gradle Plugin portal page](https://plugins.gradle.org/plugin/com.github.bjornvester.xjc), e.g. like this (for the Groovy DSL):
 
-```
+```kotlin
 plugins {
-  id "com.github.bjornvester.xjc" version "1.4"
+  id("com.github.bjornvester.xjc") version "1.3"
 }
 ```
 
 You can configure the plugin using the "xjc" extension like this:
 
-```
+```kotlin
 xjc {
     // Set properties here...
 }
@@ -58,7 +58,7 @@ Here is a list of all available properties:
 By default, it will compile all XML schemas (xsd files) found in the src/main/resource folder.
 You can change to another folder through the following configuration:
 
-```
+```kotlin
 xjc {
     xsdDir.set(layout.projectDirectory.dir("src/main/xsd"))
     // Or
@@ -70,7 +70,7 @@ If you don't want to compile all schemas in the folder, you can specify which on
 Note that they must still be located under the directory specified by xsdDir, or up-to-date checking might not work properly.
 Here is an example where all schema files are referenced relative to the xsdDir property:
 
-```
+```kotlin
 xjc {
     xsdFiles = project.files(xsdDir.file("MySchema1.xsd"),
                              xsdDir.file("MySchema2.xsd"))
@@ -82,7 +82,7 @@ xjc {
 By default, it will use XJC version 2.3.3 to compile the schemas.
 You can set another version through the xjcVersion property like this:
 
-```
+```kotlin
 xjc {
     xjcVersion.set("2.3.3")
 }
@@ -97,27 +97,27 @@ It will also add the dependency "jakarta.xml.bind:jakarta.xml.bind-api" to your 
 If your project is going to be deployed on a Java/Jakarta EE application server, you may want to exclude this dependency from your runtime and instead use whatever your application server is providing.
 
 ### Choosing the file encoding
-If your schemas contain characters that do not match your default platform encoding (on English versions of Windows, this will probably be CP-1252),
+If your schemas contain characters that do not match your default platform encoding (on western versions of Windows, this will probably be CP-1252),
 set the encoding through the file.encoding property for Gradle.
 For example, to use UTF-8, put this in your gradle.property file:
 
-```
+```properties
 org.gradle.jvmargs=-Dfile.encoding=UTF-8
 ```
 
 If you are on a POSIX operating system (e.g. Linux), you may in addition to this need to set your operating system locale to one that supports your encoding.
 Otherwise, Java (and therefore also Gradle and XJC) may not be able to create files with names outside of what your default locale supports.
-Especially some Docker images, like the Java ECR images from AWS, is by default set to a locale supporting ASCII only.
+Especially some Docker images, like the Java ECR images from AWS, are by default set to a locale supporting ASCII only.
 If this is the case for you, and you want to use UTF-8, you could export an environment variable like this:
 
-```
+```shell script
 export LANG=en_US.UTF-8
 ```
 
 ### Enabling the use of the @Generated annotation
 If you like to have the generated source code marked with the `@javax.annotation.Generated` annotation, set the `markGenerated` property to true like this:
 
-```
+```kotlin
 xjc {
     markGenerated.set(false)
 }
@@ -131,7 +131,7 @@ XJC can generate an episode file, which is basically an extended binding file th
 
 You can enable the generation using the generateEpisode property like this:
 
-```
+```kotlin
 xjc {
     generateEpisode.set(true)
 }
@@ -145,7 +145,7 @@ To do this, you need to add the jar file to the configuration named "xjcBindings
 
 For multi-projects, assuming the episode file is generated in a project called "test-producer", you can do this like this:
 
-```
+```kotlin
 dependencies {
     implementation(project(":test-producer"))
     xjcBindings(project(":test-producer", "apiElements"))
@@ -155,7 +155,7 @@ dependencies {
 ### Consuming binding files
 You can also provide your own binding files (or custom episode files) through the bindingFiles property:
 
-```
+```kotlin
 xjc {
     bindingFiles = project.files("$projectDir/src/main/bindings/mybinding.xjb")
 }
@@ -167,7 +167,7 @@ Then set the plugin options through the `options` property.
 
 For example, to use the "Copyable" plugin from the [JAXB2 Basics](https://github.com/highsource/jaxb2-basics) project, configure the following: 
 
-```
+```kotlin
 dependencies {
     xjcPlugins("org.jvnet.jaxb2_commons:jaxb2-basics:1.11.1")
 }
@@ -180,6 +180,41 @@ xjc {
 If you have trouble activating a plugin and is unsure whether it has been registered, you can run Gradle with the --debug option.
 This will print additional information on what plugins were found, what their option names are, and what plugins were activated.
 Note that in order to activate a third-party plugin, you must always provide at least one option (and usually just one) from the plugin.
+
+### Supporting Date/Time APIs introduced in Java 8
+By default, XJC will map date and time types to difficult-to-use Java types like XMLGregorianCalendar.
+If you like to use the newer Data/Time APIs from package java.time, you must use a mapper and write a custom binding file.
+
+An example of a mapper project is [threeten-jaxb](https://github.com/threeten-jaxb/threeten-jaxb), but there are others as well.
+If you like to use this one, include it as a dependency:
+
+```kotlin
+dependencies {
+    implementation("io.github.threeten-jaxb:threeten-jaxb-core:1.2")
+}
+```
+
+Then create a binding file with content with the types you like to map, e.g.:
+
+```xml
+<bindings xmlns="http://java.sun.com/xml/ns/jaxb" version="2.1"
+          xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc">
+    <globalBindings>
+        <xjc:javaType name="java.time.OffsetDate" xmlType="xs:date"
+                      adapter="io.github.threetenjaxb.core.OffsetTimeXmlAdapter"/>
+        <xjc:javaType name="java.time.OffsetDateTime" xmlType="xs:dateTime"
+                      adapter="io.github.threetenjaxb.core.OffsetDateTimeXmlAdapter"/>
+    </globalBindings>
+</bindings>
+```
+
+Lastly, configure XJC to use the binding file (in this case it is called `src/main/bindings/bindings.xml`):
+
+```kotlin
+xjc {
+    bindingFiles = files("$projectDir/src/main/bindings/bindings.xml")
+}
+```
 
 ## Road map
 Here are some of the features not yet implemented but I have planned for whenever I get the time.
