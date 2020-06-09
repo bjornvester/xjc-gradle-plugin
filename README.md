@@ -5,11 +5,11 @@
 A Gradle plugin for running the XJC binding compiler to generate Java source code from XML schemas (xsd files) using JAXB.
 
 ## Requirements and features
-* **The plugin requires Gradle version 5.6 or later**.
+* **The plugin requires Gradle version 6.0 or later**.
 
-* It has been tested with Java 8 and Java 12.
+* It has been tested with Java 8 and Java 14.
 
-* It supports XJC version 2.3.2 and later (from Jakarta EE).
+* It supports XJC version 2.3.2 and later (from Jakarta EE). Defaults to 2.3.3.
 
 * It supports the Gradle build cache (enabled by setting "org.gradle.caching=true" in your gradle.properties file).
 
@@ -19,6 +19,8 @@ This is especially useful in a CI context, where you might clone PRs and/or bran
 * It supports parallel execution (enabled with "org.gradle.parallel=true", possibly along with "org.gradle.priority=low", in your gradle.properties file).
 
 * It supports _most_, but not all (yet), of the functionality provided by XJC. Check the configuration section and the road map section to get an idea of what is possible.
+
+* It does _not_ yet fully support the Gradle instant execution cache (experimental at the time of this writing, enabled by "org.gradle.unsafe.configuration-cache=true")
 
 ## Configuration
 Apply the plugin ID "com.github.bjornvester.xjc" as documented in the [Gradle Plugin portal page](https://plugins.gradle.org/plugin/com.github.bjornvester.xjc), e.g. like this (for the Groovy DSL):
@@ -77,12 +79,12 @@ xjc {
 ```
 
 ### Customizing the build dependencies
-By default, it will use XJC version 2.3.2 to compile the schemas.
+By default, it will use XJC version 2.3.3 to compile the schemas.
 You can set another version through the xjcVersion property like this:
 
 ```
 xjc {
-    xjcVersion.set("2.3.2")
+    xjcVersion.set("2.3.3")
 }
 ```
 
