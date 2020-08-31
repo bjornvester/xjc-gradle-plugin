@@ -12,9 +12,9 @@ class XjcPlugin : Plugin<Project> {
     companion object {
         const val MINIMUM_GRADLE_VERSION = "5.6"
         const val PLUGIN_ID = "com.github.bjornvester.xjc"
-        const val XJC_TASK_NAME = "xjc"
-        const val XJC_EXTENSION_NAME = "xjc"
+        const val XJC_EXTENSION_NAME = "xjcPlugin"
         const val XJC_CONFIGURATION_NAME = "xjc"
+        const val XJC_TASK_NAME = "xjc"
         const val XJC_BIND_CONFIGURATION_NAME = "xjcBindings"
         const val XJC_PLUGINS_CONFIGURATION_NAME = "xjcPlugins"
     }

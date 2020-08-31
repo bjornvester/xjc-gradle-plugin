@@ -1,6 +1,6 @@
 plugins {
     id("java")
-    id("com.github.bjornvester.xjc")
+    id("com.github.kad-leeuwg1.xjc")
 }
 
 repositories {
@@ -18,11 +18,17 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.5.1")
 }
 
-tasks.test {
-    useJUnitPlatform()
+xjcPlugin {
+   xjcVersion.set("2.3.2")
 }
 
-xjc {
-    xsdDir.set(project.file("$projectDir/src/main/custom-xsd-folder"))
-    options.add("-Xcopyable")
+tasks {
+    xjc {
+        xsdDir.set(project.file("$projectDir/src/main/custom-xsd-folder"))
+        options.add("-Xcopyable")
+    }
+
+    test {
+        useJUnitPlatform()
+    }
 }

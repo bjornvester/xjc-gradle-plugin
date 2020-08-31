@@ -4,8 +4,7 @@ plugins {
     id("com.gradle.plugin-publish") version "0.12.0"
 }
 
-group = "com.github.bjornvester"
-version = "1.4"
+version = "1.5"
 
 allprojects {
     repositories {
@@ -14,25 +13,26 @@ allprojects {
 }
 
 dependencies {
-    implementation(kotlin("stdlib-jdk8"))
     compileOnly("org.glassfish.jaxb:jaxb-xjc:2.3.3")
+    implementation(kotlin("stdlib-jdk8"))
+    testImplementation("org.junit.jupiter:junit-jupiter:5.6.2")
 }
 
-tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile::class).all {
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8.toString()
+tasks {
+    wrapper {
+        distributionType = Wrapper.DistributionType.ALL
+        gradleVersion = "6.6.1"
     }
-}
 
-tasks.withType<Wrapper> {
-    distributionType = Wrapper.DistributionType.ALL
-    gradleVersion = "6.5"
+    test {
+        useJUnitPlatform()
+    }
 }
 
 gradlePlugin {
     plugins {
         create("xjcPlugin") {
-            id = "com.github.bjornvester.xjc"
+            id = "com.github.kad-leeuwg1.xjc"
             implementationClass = "com.github.bjornvester.xjc.XjcPlugin"
             displayName = "Gradle XJC plugin"
             description = "A plugin that generates Java source code for XML schemas (xsd files) using the XJC tool. Supports the Gradle build cache and has been tested with Java 8 and 11. Please see the Github project page for details."
@@ -41,15 +41,14 @@ gradlePlugin {
 }
 
 pluginBundle {
-    website = "https://github.com/bjornvester/xjc-gradle-plugin"
-    vcsUrl = "https://github.com/bjornvester/xjc-gradle-plugin"
+    website = "https://github.com/kad-leeuwg1/xjc-gradle-plugin"
+    vcsUrl = "https://github.com/kad-leeuwg1/xjc-gradle-plugin"
     tags = listOf("xjc", "jaxb", "xsd")
     (plugins) {
         "xjcPlugin" {
             description = "Changes:\n" +
-                    "- Support for third-party plugins\n" +
-                    "- Renamed the 'xjcBind' configuration to 'xjcBindings'\n" +
-                    "- Support for marking the generated code with the @Generated annotation"
+                    "- Move configuration to XJC task instead of the extension" +
+                    "- Allow multiple XJC tasks to be configured"
         }
     }
 }
