@@ -20,4 +20,4 @@ jobs:
       with:
         java-version: ${{ matrix.java }}
     - name: Run Gradle
-      run: ./gradlew build
+      run: ./gradlew --info build
