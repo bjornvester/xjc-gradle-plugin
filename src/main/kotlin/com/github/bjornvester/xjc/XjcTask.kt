@@ -1,10 +1,10 @@
 package com.github.bjornvester.xjc
 
-import com.github.bjornvester.xjc.XjcPlugin.Companion.XJC_EXTENSION_NAME
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.provider.ListProperty
@@ -15,19 +15,22 @@ import javax.inject.Inject
 
 @CacheableTask
 open class XjcTask @Inject constructor(private val workerExecutor: WorkerExecutor) : DefaultTask() {
+
     @get:Optional
     @get:Input
-    val defaultPackage: Property<String> = project.objects.property(String::class.java).convention(getXjcExtension().defaultPackage)
+    val defaultPackage: Property<String> = project.objects.property(String::class.java)
 
     // Only used for up-to-date checking
     @get:InputDirectory
     @get:PathSensitive(PathSensitivity.RELATIVE)
-    val xsdDir: DirectoryProperty = project.objects.directoryProperty().convention(getXjcExtension().xsdDir)
+    val xsdDir: DirectoryProperty = project.objects.directoryProperty()
+            .convention(project.layout.projectDirectory.dir("src/main/resources"))
 
     @Optional
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
-    val xsdFiles = getXjcExtension().xsdFiles
+    val xsdFiles: ConfigurableFileCollection = project.objects.fileCollection()
+            .from(xsdDir.asFileTree.matching { it.include("**/*.xsd") })
 
     @get:Classpath
     val xjcConfiguration: NamedDomainObjectProvider<Configuration> = project.configurations
@@ -43,29 +46,30 @@ open class XjcTask @Inject constructor(private val workerExecutor: WorkerExecuto
 
     @Optional
     @Input
-    val generateEpisode: Property<Boolean> = project.objects.property(Boolean::class.java).convention(getXjcExtension().generateEpisode)
+    val generateEpisode: Property<Boolean> = project.objects.property(Boolean::class.java).convention(false)
 
     @Optional
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
-    val bindingFiles = getXjcExtension().bindingFiles
+    val bindingFiles: ConfigurableFileCollection = project.objects.fileCollection()
 
     @get:Input
-    val options: ListProperty<String> = project.objects.listProperty(String::class.java).convention(getXjcExtension().options)
+    val options: ListProperty<String> = project.objects.listProperty(String::class.java)
 
     @get:Input
-    val markGenerated: Property<Boolean> = project.objects.property(Boolean::class.java).convention(getXjcExtension().markGenerated)
+    val markGenerated: Property<Boolean> = project.objects.property(Boolean::class.java).convention(false)
 
     @get:OutputDirectory
-    val outputJavaDir: DirectoryProperty = project.objects.directoryProperty().convention(getXjcExtension().outputJavaDir)
+    val outputJavaDir: DirectoryProperty = project.objects.directoryProperty()
+            .convention(project.layout.buildDirectory.dir("generated/sources/xjc/java"))
 
     @get:OutputDirectory
-    val outputResourcesDir: DirectoryProperty = project.objects.directoryProperty().convention(getXjcExtension().outputResourcesDir)
+    val outputResourcesDir: DirectoryProperty = project.objects.directoryProperty()
+            .convention(project.layout.buildDirectory.dir("generated/sources/xjc/resources"))
 
     @get:Internal
-    val tmpBindFiles: DirectoryProperty = project.objects.directoryProperty().convention(
-            project.layout.buildDirectory.dir("xjc/extracted-bind-files")
-    )
+    val tmpBindFiles: DirectoryProperty = project.objects.directoryProperty()
+            .convention(project.layout.buildDirectory.dir("xjc/extracted-bind-files"))
 
     init {
         group = BasePlugin.BUILD_GROUP
@@ -185,6 +189,4 @@ open class XjcTask @Inject constructor(private val workerExecutor: WorkerExecuto
             }
         }
     }
-
-    private fun getXjcExtension() = project.extensions.getByName(XJC_EXTENSION_NAME) as XjcExtension
 }

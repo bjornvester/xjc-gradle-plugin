@@ -1,13 +1,19 @@
 plugins {
     id("java")
-    id("com.github.bjornvester.xjc")
+    id("com.github.kad-leeuwg1.xjc")
 }
 
 repositories {
     jcenter()
 }
 
-xjc {
-    generateEpisode.set(true)
-    xsdFiles = files(xsdDir.file("MySchemaWithFunnyChar.xsd"))
+xjcPlugin {
+    xjcVersion.set("2.3.2")
+}
+
+tasks {
+    xjc {
+        generateEpisode.set(true)
+        xsdFiles.setFrom(xsdDir.file("MySchemaWithFunnyChar.xsd"))
+    }
 }
