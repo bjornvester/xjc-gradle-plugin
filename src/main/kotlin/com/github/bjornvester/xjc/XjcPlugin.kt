@@ -29,35 +29,34 @@ class XjcPlugin : Plugin<Project> {
         project.configurations.maybeCreate(XJC_PLUGINS_CONFIGURATION_NAME)
 
         xjcConfiguration.defaultDependencies {
-            it.add(project.dependencies.create("org.glassfish.jaxb:jaxb-xjc:${extension.xjcVersion.get()}"))
+            add(project.dependencies.create("org.glassfish.jaxb:jaxb-xjc:${extension.xjcVersion.get()}"))
         }
 
         project.configurations.named(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME) {
-            it.dependencies.add(project.dependencies.create("jakarta.xml.bind:jakarta.xml.bind-api:${extension.xjcVersion.get()}"))
+            dependencies.add(project.dependencies.create("jakarta.xml.bind:jakarta.xml.bind-api:${extension.xjcVersion.get()}"))
         }
 
-        project.tasks.register(XJC_TASK_NAME, XjcTask::class.java) { xjcTask ->
+        project.tasks.register(XJC_TASK_NAME, XjcTask::class.java) {
             val sourceSets = project.properties["sourceSets"] as SourceSetContainer
 
             sourceSets.named(MAIN_SOURCE_SET_NAME) {
-                it.java.srcDir(xjcTask.outputJavaDir)
-                it.resources.srcDir(xjcTask.outputResourcesDir)
+                java.srcDir(outputJavaDir)
+                resources.srcDir(outputResourcesDir)
             }
         }
 
         project.tasks.named(JavaPlugin.PROCESS_RESOURCES_TASK_NAME) {
-            it.dependsOn(XJC_TASK_NAME)
+            dependsOn(XJC_TASK_NAME)
         }
 
         project.tasks.named(JavaPlugin.COMPILE_JAVA_TASK_NAME) {
-            it.dependsOn(XJC_TASK_NAME)
+            dependsOn(XJC_TASK_NAME)
         }
     }
 
     private fun verifyGradleVersion() {
         if (GradleVersion.current() < GradleVersion.version(MINIMUM_GRADLE_VERSION)) {
-            throw UnsupportedOperationException("Plugin $PLUGIN_ID requires at least Gradle $MINIMUM_GRADLE_VERSION, " +
-                    "but you are using ${GradleVersion.current().version}")
+            throw UnsupportedOperationException("Plugin $PLUGIN_ID requires at least Gradle $MINIMUM_GRADLE_VERSION, but you are using ${GradleVersion.current().version}")
         }
     }
 }

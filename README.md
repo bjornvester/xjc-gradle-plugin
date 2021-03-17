@@ -7,7 +7,7 @@ A Gradle plugin for running the XJC binding compiler to generate Java source cod
 ## Requirements and features
 * **The plugin requires Gradle version 6.0 or later**.
 
-* It has been tested with Java 8 and Java 14.
+* It has been tested with Java 8, Java 11 and Java 15. Note that there is currently (as of Gradle 6.8.3) a problem with Java 16 due to [this](https://youtrack.jetbrains.com/issue/KT-44266) (not sure if it is only when using the Kotlin DSL).
 
 * It supports XJC version 2.3.2 and later (from Jakarta EE). Defaults to 2.3.3.
 
@@ -111,7 +111,7 @@ Especially some Docker images, like the Java ECR images from AWS, are by default
 If this is the case for you, and you want to use UTF-8, you could export an environment variable like this:
 
 ```shell script
-export LANG=en_US.UTF-8
+export LANG=C.UTF-8
 ```
 
 ### Enabling the use of the @Generated annotation

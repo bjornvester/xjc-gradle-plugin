@@ -29,7 +29,8 @@ abstract class XjcWorker : WorkAction<XjcWorkerParams> {
 
     private fun doWork() {
         val options = Options()
-        options.disableXmlSecurity = true // Avoids SAXNotRecognizedExceptions in certain places (though not everywhere) - see the note in XjcTask for additional information on this
+        options.disableXmlSecurity =
+            true // Avoids SAXNotRecognizedExceptions in certain places (though not everywhere) - see the note in XjcTask for additional information on this
         configureGeneratedEpisodeFile(options)
 
         if (parameters.bindFiles.isNotEmpty()) {
@@ -75,10 +76,10 @@ abstract class XjcWorker : WorkAction<XjcWorkerParams> {
         val jCodeModel = JCodeModel()
 
         val model = ModelLoader.load(options, jCodeModel, XjcErrorReceiver())
-                ?: throw GradleException("Could not load the XJC model")
+            ?: throw GradleException("Could not load the XJC model")
 
         model.generateCode(options, XjcErrorReceiver())
-                ?: throw GradleException("Could not generate code from the XJC model")
+            ?: throw GradleException("Could not generate code from the XJC model")
 
         jCodeModel.build(parameters.outputJavaDir, parameters.outputResourceDir)
 
@@ -97,9 +98,9 @@ abstract class XjcWorker : WorkAction<XjcWorkerParams> {
             // Strip the first comment as it contains a timestamp that messes with the build cache
             val episodeFile = File(parameters.episodeFilepath)
             episodeFile.writeText(
-                    episodeFile.readText().replaceFirst(
-                            Regex(" *<!--.+?-->", RegexOption.DOT_MATCHES_ALL), ""
-                    )
+                episodeFile.readText().replaceFirst(
+                    Regex(" *<!--.+?-->", RegexOption.DOT_MATCHES_ALL), ""
+                )
             )
         }
     }

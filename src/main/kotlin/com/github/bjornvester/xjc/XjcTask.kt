@@ -17,10 +17,12 @@ import org.gradle.workers.WorkerExecutor
 import javax.inject.Inject
 
 @CacheableTask
-open class XjcTask @Inject constructor(private val workerExecutor: WorkerExecutor,
-                                       objectFactory: ObjectFactory,
-                                       projectLayout: ProjectLayout,
-                                       private val fileSystemOperations: FileSystemOperations) : DefaultTask() {
+open class XjcTask @Inject constructor(
+    private val workerExecutor: WorkerExecutor,
+    objectFactory: ObjectFactory,
+    projectLayout: ProjectLayout,
+    private val fileSystemOperations: FileSystemOperations
+) : DefaultTask() {
     @get:Optional
     @get:Input
     val defaultPackage: Property<String> = objectFactory.property(String::class.java).convention(getXjcExtension().defaultPackage)
@@ -75,9 +77,9 @@ open class XjcTask @Inject constructor(private val workerExecutor: WorkerExecuto
 
     @TaskAction
     fun doCodeGeneration() {
-        fileSystemOperations.delete { it.delete(outputJavaDir) }
-        fileSystemOperations.delete { it.delete(outputResourcesDir) }
-        fileSystemOperations.delete { it.delete(tmpBindFiles) }
+        fileSystemOperations.delete { delete(outputJavaDir) }
+        fileSystemOperations.delete { delete(outputResourcesDir) }
+        fileSystemOperations.delete { delete(tmpBindFiles) }
         outputJavaDir.get().asFile.mkdirs()
         outputResourcesDir.get().asFile.mkdirs()
 
@@ -96,16 +98,16 @@ open class XjcTask @Inject constructor(private val workerExecutor: WorkerExecuto
             logger.info("Loading binding files: $allBindingFiles")
         }
 
-        var episodeFilepath = ""
+        var episodeFilepathArg = ""
 
         if (generateEpisode.get()) {
             val episodeDir = outputResourcesDir.dir("META-INF")
             episodeDir.get().asFile.mkdirs()
-            episodeFilepath = episodeDir.get().file("sun-jaxb.episode").asFile.absolutePath
-            logger.info("Generating episode file in $episodeFilepath")
+            episodeFilepathArg = episodeDir.get().file("sun-jaxb.episode").asFile.absolutePath
+            logger.info("Generating episode file in $episodeFilepathArg")
         }
 
-        val workQueue = workerExecutor.processIsolation { config ->
+        val workQueue = workerExecutor.processIsolation {
             /*
             All gradle worker processes have Xerces2 on the classpath.
             This version of Xerces does not support checking for external file access (even if not used).
@@ -114,44 +116,48 @@ open class XjcTask @Inject constructor(private val workerExecutor: WorkerExecuto
             To avoid this, we fork the worker API to a separate process where we can set system properties to select which implementation of a SAXParser to use.
             The JDK comes with an internal implementation of a SAXParser, also based on Xerces, but supports the properties to control external file access.
             */
-            config.forkOptions.systemProperties = mapOf(
-                    "javax.xml.parsers.DocumentBuilderFactory" to "com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl",
-                    "javax.xml.parsers.SAXParserFactory" to "com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl",
-                    "javax.xml.validation.SchemaFactory:http://www.w3.org/2001/XMLSchema" to "org.apache.xerces.internal.jaxp.validation.XMLSchemaFactory",
-                    "javax.xml.accessExternalSchema" to "all"
+            forkOptions.systemProperties = mapOf(
+                "javax.xml.parsers.DocumentBuilderFactory" to "com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl",
+                "javax.xml.parsers.SAXParserFactory" to "com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl",
+                "javax.xml.validation.SchemaFactory:http://www.w3.org/2001/XMLSchema" to "org.apache.xerces.internal.jaxp.validation.XMLSchemaFactory",
+                "javax.xml.accessExternalSchema" to "all"
             )
 
             if (logger.isDebugEnabled) {
                 // This adds debugging information on the XJC method used to find and load services (plugins)
-                config.forkOptions.systemProperties["com.sun.tools.xjc.Options.findServices"] = ""
+                forkOptions.systemProperties["com.sun.tools.xjc.Options.findServices"] = ""
             }
 
-            config.classpath.from(xjcClasspath)
+            // Set encoding (work-around for https://github.com/gradle/gradle/issues/13843)
+            forkOptions.environment("LANG", System.getenv("LANG") ?: "C.UTF-8")
+
+            classpath.from(xjcClasspath)
         }
 
         System.setProperty("com.sun.tools.xjc.Options.findServices", "true")
 
-        workQueue.submit(XjcWorker::class.java) { params ->
-            params.xsdFiles = xsdFiles.files
-            params.outputJavaDir = outputJavaDir.get().asFile
-            params.outputResourceDir = outputResourcesDir.get().asFile
-            params.defaultPackage = defaultPackage
-            params.episodeFilepath = episodeFilepath
-            params.bindFiles = allBindingFiles
-            params.verbose = logger.isDebugEnabled
-            params.options = options.get()
-            params.markGenerated = markGenerated.get()
+        workQueue.submit(XjcWorker::class.java) {
+            val task = this@XjcTask
+            xsdFiles = task.xsdFiles.files
+            outputJavaDir = task.outputJavaDir.get().asFile
+            outputResourceDir = task.outputResourcesDir.get().asFile
+            defaultPackage = task.defaultPackage
+            episodeFilepath = episodeFilepathArg
+            bindFiles = allBindingFiles
+            verbose = task.logger.isDebugEnabled
+            options = task.options.get()
+            markGenerated = task.markGenerated.get()
         }
     }
 
     private fun validateOptions() {
         val prohibitedOptions = mapOf(
-                "-classpath" to "Leads to resource leaks. Use the 'xjc', 'xjcBindings' or 'xjcPlugins' configuration instead",
-                "-d" to "Configured through the 'outputJavaDir' property",
-                "-b" to "Configured through the 'bindingFiles' property",
-                "-p" to "Configured through the 'defaultPackage' property",
-                "-episode" to "Configured through the 'generateEpisode' property",
-                "-mark-generated" to "Configured through the 'markGenerated' property"
+            "-classpath" to "Leads to resource leaks. Use the 'xjc', 'xjcBindings' or 'xjcPlugins' configuration instead",
+            "-d" to "Configured through the 'outputJavaDir' property",
+            "-b" to "Configured through the 'bindingFiles' property",
+            "-p" to "Configured through the 'defaultPackage' property",
+            "-episode" to "Configured through the 'generateEpisode' property",
+            "-mark-generated" to "Configured through the 'markGenerated' property"
         )
         options.get().forEach { option ->
             if (prohibitedOptions.containsKey(option)) {
@@ -175,10 +181,10 @@ open class XjcTask @Inject constructor(private val workerExecutor: WorkerExecuto
                     logger.warn("No episodes (sun-jaxb.episode) found in bind jar file ${bindJarFile.name}")
                 } else {
                     episodeFiles.first().copyTo(
-                            tmpBindFiles
-                                    .file(bindJarFile.name.removeSuffix(".jar") + ".episode")
-                                    .get()
-                                    .asFile
+                        tmpBindFiles
+                            .file(bindJarFile.name.removeSuffix(".jar") + ".episode")
+                            .get()
+                            .asFile
                     )
                 }
             } else {
