@@ -27,7 +27,7 @@ Apply the plugin ID "com.github.bjornvester.xjc" as documented in the [Gradle Pl
 
 ```kotlin
 plugins {
-  id("com.github.bjornvester.xjc") version "1.3"
+  id("com.github.bjornvester.xjc") version "1.4"
 }
 ```
 
