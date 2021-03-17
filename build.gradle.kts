@@ -25,8 +25,7 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile::class).all {
 }
 
 tasks.withType<Wrapper> {
-    distributionType = Wrapper.DistributionType.ALL
-    gradleVersion = "6.4.1"
+    gradleVersion = "6.8.3"
 }
 
 gradlePlugin {
