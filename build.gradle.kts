@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.github.bjornvester"
-version = "1.5-snapshot"
+version = "1.4.1"
 
 allprojects {
     repositories {
@@ -43,7 +43,7 @@ pluginBundle {
     (plugins) {
         "xjcPlugin" {
             description = "Changes:\n" +
-                    "- Upgrade default version of XJC from version 2.3.2 to 2.3.3"
+                    "- Carry the LANG environment over from the main environment to the XJC worker process to ensure the correct encoding is used"
         }
     }
 }
