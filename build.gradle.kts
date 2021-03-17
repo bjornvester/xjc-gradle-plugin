@@ -15,7 +15,7 @@ allprojects {
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
-    compileOnly("org.glassfish.jaxb:jaxb-xjc:2.3.2")
+    compileOnly("org.glassfish.jaxb:jaxb-xjc:2.3.3")
 }
 
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile::class).all {
