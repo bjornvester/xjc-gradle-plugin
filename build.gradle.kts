@@ -1,11 +1,11 @@
 plugins {
-    kotlin("jvm") version "1.3.50"
+    `kotlin-dsl`
     id("java-gradle-plugin")
-    id("com.gradle.plugin-publish") version "0.10.1"
+    id("com.gradle.plugin-publish") version "0.13.0"
 }
 
 group = "com.github.bjornvester"
-version = "1.4"
+version = "1.5-snapshot"
 
 allprojects {
     repositories {
@@ -14,14 +14,11 @@ allprojects {
 }
 
 dependencies {
-    implementation(kotlin("stdlib-jdk8"))
     compileOnly("org.glassfish.jaxb:jaxb-xjc:2.3.3")
 }
 
-tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile::class).all {
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8.toString()
-    }
+kotlinDslPluginOptions {
+    experimentalWarning.set(false)
 }
 
 tasks.withType<Wrapper> {

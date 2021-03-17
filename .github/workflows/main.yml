@@ -8,7 +8,7 @@ jobs:
     
     strategy:
       matrix:
-        java: [ '8', '11', '16' ]
+        java: [ '8', '11', '15' ]
 
     name: Java ${{ matrix.java }}
 
@@ -24,5 +24,13 @@ jobs:
         key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
         restore-keys: |
           ${{ runner.os }}-gradle-
-    - name: Run Gradle
+    - name: Set encoding and print version information
+      run: |
+        export LANG=C.UTF-8
+        locale
+        ./gradlew --version
+    - name: Build plugin
       run: ./gradlew build
+    - name: Run integration test
+      working-directory: ./integration-test
+      run: ../gradlew build

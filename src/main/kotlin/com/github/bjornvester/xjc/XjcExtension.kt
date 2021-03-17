@@ -9,7 +9,7 @@ import javax.inject.Inject
 
 open class XjcExtension @Inject constructor(project: Project) {
     val xsdDir: DirectoryProperty = project.objects.directoryProperty().convention(project.layout.projectDirectory.dir("src/main/resources"))
-    var xsdFiles: FileCollection = xsdDir.asFileTree.matching { it.include("**/*.xsd") }
+    var xsdFiles: FileCollection = xsdDir.asFileTree.matching { include("**/*.xsd") }
     val outputJavaDir: DirectoryProperty = project.objects.directoryProperty().convention(project.layout.buildDirectory.dir("generated/sources/xjc/java"))
     val outputResourcesDir: DirectoryProperty = project.objects.directoryProperty().convention(project.layout.buildDirectory.dir("generated/sources/xjc/resources"))
     val xjcVersion: Property<String> = project.objects.property(String::class.java).convention("2.3.3")
