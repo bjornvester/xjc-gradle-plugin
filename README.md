@@ -7,9 +7,9 @@ A Gradle plugin for running the XJC binding compiler to generate Java source cod
 ## Requirements and features
 * **The plugin requires Gradle version 6.0 or later**.
 
-* It has been tested with Java 8, Java 11 and Java 15. Note that there is currently (as of Gradle 6.8.3) a problem with Java 16 due to [this](https://youtrack.jetbrains.com/issue/KT-44266) (not sure if it is only when using the Kotlin DSL).
+* It has been tested with Java 8, Java 11 and Java 15.
 
-* It supports XJC version 2.3.2 and later (from Jakarta EE). Defaults to 2.3.3.
+* It has been tested with XJC version 2.3.3 and 3.0.0 (from Jakarta EE). Defaults to 2.3.3.
 
 * It supports the Gradle build cache (enabled by setting "org.gradle.caching=true" in your gradle.properties file).
 
@@ -27,7 +27,7 @@ Apply the plugin ID "com.github.bjornvester.xjc" as documented in the [Gradle Pl
 
 ```kotlin
 plugins {
-  id("com.github.bjornvester.xjc") version "1.4"
+  id("com.github.bjornvester.xjc") version "1.5.0"
 }
 ```
 
@@ -47,7 +47,7 @@ Here is a list of all available properties:
 | xsdFiles           | FileCollection        | xsdDir<br>&nbsp;&nbsp;.asFileTree<br>&nbsp;&nbsp;.matching { include("**/*.xsd") } | The schemas to compile.<br>If empty, all files in the xsdDir will be compiled.                               |
 | outputJavaDir      | DirectoryProperty     | "$buildDir/generated<br>/sources/xjc/java"                                         | The output directory for the generated Java sources.<br>Note that it will be deleted when running XJC.       |
 | outputResourcesDir | DirectoryProperty     | "$buildDir/generated<br>/sources/xjc/resources"                                    | The output directory for the generated resources (if any).<br>Note that it will be deleted when running XJC. |
-| xjcVersion         | Provider\<String>     | "2.3.2"                                                                            | The version of XJC to use.                                                                                   |
+| xjcVersion         | Provider\<String>     | "2.3.3"                                                                            | The version of XJC to use.                                                                                   |
 | defaultPackage     | Provider\<String>     | \[not set\]                                                                        | The default package for the generated Java classes.<br>If empty, XJC will infer it from the namespace.       |
 | generateEpisode    | Provider\<Boolean>    | false                                                                              | If true, generates an Episode file for the generated Java classes.                                           |
 | markGenerated      | Provider\<Boolean>    | true                                                                               | If true, marks the generated code with the annotation `@javax.annotation.Generated`.                           |
@@ -61,8 +61,6 @@ You can change to another folder through the following configuration:
 ```kotlin
 xjc {
     xsdDir.set(layout.projectDirectory.dir("src/main/xsd"))
-    // Or
-    xsdDir.set(project.file("$projectDir/src/main/xsd"))
 }
 ```
 
@@ -72,10 +70,13 @@ Here is an example where all schema files are referenced relative to the xsdDir 
 
 ```kotlin
 xjc {
-    xsdFiles = project.files(xsdDir.file("MySchema1.xsd"),
-                             xsdDir.file("MySchema2.xsd"))
+    xsdFiles = project.files(
+        xsdDir.file("MySchema1.xsd"),
+        xsdDir.file("MySchema2.xsd")
+    )
     // Or
-   xsdFiles = xsdDir.asFileTree.matching { include("subfolder/**/*.xsd") }
+    xsdFiles = xsdDir.asFileTree.matching { include("subfolder/**/*.xsd") }
+}
 ```
 
 ### Customizing the build dependencies
@@ -84,7 +85,7 @@ You can set another version through the xjcVersion property like this:
 
 ```kotlin
 xjc {
-    xjcVersion.set("2.3.3")
+    xjcVersion.set("3.0.0")
 }
 ```
 
@@ -95,6 +96,8 @@ or by searching for the group and name "org.glassfish.jaxb:jaxb-xjc", e.g. throu
 By applying the plugin, it will register the Java plugin as well if it isn't there already (so the generated source code can be compiled).
 It will also add the dependency "jakarta.xml.bind:jakarta.xml.bind-api" to your implementation configuration, as this is needed to compile the source code.
 If your project is going to be deployed on a Java/Jakarta EE application server, you may want to exclude this dependency from your runtime and instead use whatever your application server is providing.
+
+Note that XJC 3.x uses the `jakarta.xml` package namespace, whereas 2.x uses `javax.xml`.
 
 ### Choosing the file encoding
 If your schemas contain characters that do not match your default platform encoding (on western versions of Windows, this will probably be CP-1252),
@@ -175,7 +178,9 @@ dependencies {
 xjc {
     options.add("-Xcopyable")
 }
-``` 
+```
+
+Note that the above plugin is only compatible with JAXB 2.x.
 
 If you have trouble activating a plugin and is unsure whether it has been registered, you can run Gradle with the --debug option.
 This will print additional information on what plugins were found, what their option names are, and what plugins were activated.

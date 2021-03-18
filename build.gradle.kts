@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.github.bjornvester"
-version = "1.4.1"
+version = "1.5.0"
 
 allprojects {
     repositories {
@@ -43,7 +43,7 @@ pluginBundle {
     (plugins) {
         "xjcPlugin" {
             description = "Changes:\n" +
-                    "- Carry the LANG environment over from the main environment to the XJC worker process to ensure the correct encoding is used"
+                    "- Support XJC 3.0.0"
         }
     }
 }

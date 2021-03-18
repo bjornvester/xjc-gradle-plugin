@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:common="http://github.com/bjornvester/producer"
+           xmlns:tsk="http://github.com/bjornvester/consumer"
+           targetNamespace="http://github.com/bjornvester/consumer"
+           elementFormDefault="qualified"
+           version="1.0">
+    <xs:import namespace="http://github.com/bjornvester/producer"
+               schemaLocation="../../../../../test-producer-2x/src/main/resources/MySchemaWithFunnyChar.xsd"/>
+    <xs:element name="MyWrapper" type="tsk:MyWrapper"/>
+    <xs:complexType name="MyWrapper">
+        <xs:sequence>
+            <xs:element ref="common:MyElementØ" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+</xs:schema>
