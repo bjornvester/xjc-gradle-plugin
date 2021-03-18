@@ -6,7 +6,7 @@
            elementFormDefault="qualified"
            version="1.0">
     <xs:import namespace="http://github.com/bjornvester/producer"
-               schemaLocation="../../../../../test-producer/src/main/resources/MySchemaWithFunnyChar.xsd"/>
+               schemaLocation="../../../../../test-producer-3x/src/main/resources/MySchemaWithFunnyChar.xsd"/>
     <xs:element name="MyWrapper" type="tsk:MyWrapper"/>
     <xs:complexType name="MyWrapper">
         <xs:sequence>
