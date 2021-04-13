@@ -40,7 +40,14 @@ class XjcPlugin : Plugin<Project> {
             addLater(extension.xjcVersion.map { project.dependencies.create("org.glassfish.jaxb:jaxb-xjc:$it") })
         }
 
-        project.dependencies.addProvider(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME, extension.xjcVersion.map { "jakarta.xml.bind:jakarta.xml.bind-api:$it" }, DO_NOTHING)
+        if (GradleVersion.current() <= GradleVersion.version("6.8")) {
+            project.afterEvaluate {
+                project.dependencies.add(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME, "jakarta.xml.bind:jakarta.xml.bind-api:${extension.xjcVersion.get()}")
+            }
+        } else {
+            // The 'addProvider' method was only added in 6.8. It is a better way to add the dependency lazily than 'afterEvaluate' (to ensure the version read from the extension is evaluated as late as possible)
+            project.dependencies.addProvider(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME, extension.xjcVersion.map { "jakarta.xml.bind:jakarta.xml.bind-api:$it" }, DO_NOTHING)
+        }
 
         project.tasks.register(XJC_TASK_NAME, XjcTask::class.java) {
             val sourceSets = project.properties["sourceSets"] as SourceSetContainer
