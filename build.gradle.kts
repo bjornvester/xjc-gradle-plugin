@@ -1,28 +1,44 @@
+import org.jetbrains.kotlin.gradle.dsl.KotlinJvmCompile
+
 plugins {
     `kotlin-dsl`
     id("java-gradle-plugin")
-    id("com.gradle.plugin-publish") version "0.13.0"
+    id("com.gradle.plugin-publish") version "0.14.0"
 }
 
 group = "com.github.bjornvester"
-version = "1.5.0"
+version = "1.5.1"
 
 allprojects {
     repositories {
-        jcenter()
+        mavenCentral()
     }
 }
 
 dependencies {
     compileOnly("org.glassfish.jaxb:jaxb-xjc:2.3.3")
+    testImplementation("commons-io:commons-io:2.8.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.1")
+    testImplementation("org.junit.jupiter:junit-jupiter-params")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 }
 
-kotlinDslPluginOptions {
-    experimentalWarning.set(false)
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
+    systemProperty("GRADLE_ROOT_FOLDER", projectDir.absolutePath)
+    systemProperty("GRADLE_PLUGIN_VERSION", version)
 }
 
 tasks.withType<Wrapper> {
-    gradleVersion = "6.8.3"
+    gradleVersion = "7.0"
+}
+
+val compiler = javaToolchains.compilerFor {
+    languageVersion.set(JavaLanguageVersion.of(8))
+}
+
+tasks.withType<KotlinJvmCompile>().configureEach {
+    kotlinOptions.jdkHome = compiler.get().metadata.installationPath.asFile.absolutePath
 }
 
 gradlePlugin {
@@ -31,7 +47,8 @@ gradlePlugin {
             id = "com.github.bjornvester.xjc"
             implementationClass = "com.github.bjornvester.xjc.XjcPlugin"
             displayName = "Gradle XJC plugin"
-            description = "A plugin that generates Java source code for XML schemas (xsd files) using the XJC tool. Supports the Gradle build cache and has been tested with Java 8 and 11. Please see the Github project page for details."
+            description = """A plugin that generates Java source code for XML schemas (xsd files) using the XJC tool.
+                            |Please see the Github project page for details.""".trimMargin()
         }
     }
 }
@@ -42,8 +59,8 @@ pluginBundle {
     tags = listOf("xjc", "jaxb", "xsd")
     (plugins) {
         "xjcPlugin" {
-            description = "Changes:\n" +
-                    "- Support XJC 3.0.0"
+            description = """Changes:
+                            |- Restore support for Gradle 6.0 (while also supporting Gradle 7.0)""".trimMargin()
         }
     }
 }
