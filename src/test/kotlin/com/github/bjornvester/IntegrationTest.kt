@@ -2,6 +2,7 @@ package com.github.bjornvester
 
 import org.apache.commons.io.FileUtils
 import org.gradle.testkit.runner.GradleRunner
+import org.gradle.util.GradleVersion
 import org.junit.jupiter.api.io.TempDir
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -24,9 +25,15 @@ open class IntegrationTest {
         // Remove the "includedBuild" declaration from the settings file
         tempDir.resolve(SETTINGS_FILE).writeText(tempDir.resolve(SETTINGS_FILE).readText().replace("includeBuild(\"..\")", ""))
 
-        if (gradleVersion == "6.0") {
+        if (GradleVersion.version(gradleVersion) < GradleVersion.version("7.0")) {
+            // The grouping functionality is not supported in older versions
+            tempDir.resolve(SETTINGS_FILE)
+                    .writeText(tempDir.resolve(SETTINGS_FILE).readText().replace("\"test-producer-3x-grouped\",", ""))
+        }
+
+        if (GradleVersion.version(gradleVersion) < GradleVersion.version("6.7")) {
             // If we test with an old version of Gradle that does not support toolchains, remove it
-            // Unfortunately, this means we have to test with whatever we are running the build with
+            // Unfortunately, this means we have to test with whatever JDK we are running the build with
             tempDir.resolve(JAVA_CONVENTIONS_FILE)
                 .writeText(tempDir.resolve(JAVA_CONVENTIONS_FILE).readText().replace("toolchain \\{.*?}".toRegex(DOT_MATCHES_ALL), ""))
         } else {
@@ -70,7 +77,7 @@ open class IntegrationTest {
         fun provideVersions(): Stream<Arguments?>? {
             return Stream.of(
                 Arguments.of("8", "7.0"),
-                Arguments.of("11", "6.0"),
+                Arguments.of("NA", "6.0"), // Minimum version of Gradle
                 Arguments.of("11", "7.0"),
                 Arguments.of("16", "7.0")
             )

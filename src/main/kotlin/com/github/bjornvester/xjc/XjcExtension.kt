@@ -1,21 +1,39 @@
 package com.github.bjornvester.xjc
 
-import org.gradle.api.Project
-import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.file.FileCollection
-import org.gradle.api.provider.ListProperty
-import org.gradle.api.provider.Property
+import org.gradle.api.file.ProjectLayout
+import org.gradle.api.model.ObjectFactory
 import javax.inject.Inject
 
-open class XjcExtension @Inject constructor(project: Project) {
-    val xsdDir: DirectoryProperty = project.objects.directoryProperty().convention(project.layout.projectDirectory.dir("src/main/resources"))
-    var xsdFiles: FileCollection = xsdDir.asFileTree.matching { include("**/*.xsd") }
-    val outputJavaDir: DirectoryProperty = project.objects.directoryProperty().convention(project.layout.buildDirectory.dir("generated/sources/xjc/java"))
-    val outputResourcesDir: DirectoryProperty = project.objects.directoryProperty().convention(project.layout.buildDirectory.dir("generated/sources/xjc/resources"))
-    val xjcVersion: Property<String> = project.objects.property(String::class.java).convention("2.3.3")
-    val defaultPackage: Property<String> = project.objects.property(String::class.java)
-    val generateEpisode: Property<Boolean> = project.objects.property(Boolean::class.java).convention(false)
-    var bindingFiles: FileCollection = project.objects.fileCollection()
-    val options: ListProperty<String> = project.objects.listProperty(String::class.java)
-    val markGenerated: Property<Boolean> = project.objects.property(Boolean::class.java).convention(false)
+open class XjcExtension @Inject constructor(objects: ObjectFactory, layout: ProjectLayout) : XjcExtensionGroup {
+    val xjcVersion = objects.property(String::class.java).convention("2.3.3")
+
+    override val name = "Defaults"
+    override val xsdDir = objects.directoryProperty().convention(layout.projectDirectory.dir("src/main/resources"))
+    override var xsdFiles: FileCollection = xsdDir.asFileTree.matching { include("**/*.xsd") } // TODO: Once a ConfigurableFileCollection, change to: objects.fileCollection().from(...)
+    override val outputJavaDir = objects.directoryProperty().convention(layout.buildDirectory.dir("generated/sources/xjc/java"))
+    override val outputResourcesDir = objects.directoryProperty().convention(layout.buildDirectory.dir("generated/sources/xjc/resources"))
+    override val defaultPackage = objects.property(String::class.java)
+    override val generateEpisode = objects.property(Boolean::class.java).convention(false)
+    override var bindingFiles: FileCollection = objects.fileCollection()
+    override val options = objects.listProperty(String::class.java)
+    override val markGenerated = objects.property(Boolean::class.java).convention(false)
+
+    val groups: NamedDomainObjectContainer<XjcExtensionGroup> = objects.domainObjectContainer(XjcExtensionGroup::class.java)
+
+    init {
+        groups.configureEach {
+            xsdDir.convention(this@XjcExtension.xsdDir)
+            xsdFiles = objects.fileCollection() // Once this field is "val", change to a convention
+            outputJavaDir.convention(layout.buildDirectory.dir("generated/sources/xjc-$name/java"))
+            outputResourcesDir.convention(layout.buildDirectory.dir("generated/sources/xjc-$name/resources"))
+            xjcVersion.convention(this@XjcExtension.xjcVersion)
+            defaultPackage.convention(this@XjcExtension.defaultPackage)
+            generateEpisode.convention(this@XjcExtension.generateEpisode)
+            bindingFiles = objects.fileCollection() // Once this field is "val", change to a convention
+            options.convention(this@XjcExtension.options)
+            markGenerated.convention(this@XjcExtension.markGenerated)
+        }
+    }
 }

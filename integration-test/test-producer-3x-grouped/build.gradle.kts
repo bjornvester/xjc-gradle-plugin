@@ -19,4 +19,15 @@ tasks.test {
 
 xjc {
     xjcVersion.set("3.0.0")
+
+    groups {
+        register("group1") {
+            xsdFiles = files(xsdDir.file("MySchemaWithFunnyChar.xsd"))
+            defaultPackage.set("com.example.group1")
+        }
+        register("group2") {
+            xsdFiles = files(xsdDir.file("MySchemaWithFunnyChar.xsd"))
+            defaultPackage.set("com.example.group2")
+        }
+    }
 }

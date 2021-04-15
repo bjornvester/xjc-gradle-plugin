@@ -18,10 +18,10 @@ import javax.inject.Inject
 
 @CacheableTask
 open class XjcTask @Inject constructor(
-    private val workerExecutor: WorkerExecutor,
-    objectFactory: ObjectFactory,
-    projectLayout: ProjectLayout,
-    private val fileSystemOperations: FileSystemOperations
+        private val workerExecutor: WorkerExecutor,
+        objectFactory: ObjectFactory,
+        projectLayout: ProjectLayout,
+        private val fileSystemOperations: FileSystemOperations
 ) : DefaultTask() {
     @get:Optional
     @get:Input
@@ -35,7 +35,7 @@ open class XjcTask @Inject constructor(
     @Optional
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
-    val xsdFiles = getXjcExtension().xsdFiles
+    var xsdFiles = getXjcExtension().xsdFiles
 
     @get:Classpath
     val xjcConfiguration: NamedDomainObjectProvider<Configuration> = project.configurations.named(XjcPlugin.XJC_CONFIGURATION_NAME)
@@ -53,7 +53,7 @@ open class XjcTask @Inject constructor(
     @Optional
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
-    val bindingFiles = getXjcExtension().bindingFiles
+    var bindingFiles = getXjcExtension().bindingFiles
 
     @get:Input
     val options: ListProperty<String> = objectFactory.listProperty(String::class.java).convention(getXjcExtension().options)
@@ -117,10 +117,10 @@ open class XjcTask @Inject constructor(
             The JDK comes with an internal implementation of a SAXParser, also based on Xerces, but supports the properties to control external file access.
             */
             forkOptions.systemProperties = mapOf(
-                "javax.xml.parsers.DocumentBuilderFactory" to "com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl",
-                "javax.xml.parsers.SAXParserFactory" to "com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl",
-                "javax.xml.validation.SchemaFactory:http://www.w3.org/2001/XMLSchema" to "org.apache.xerces.internal.jaxp.validation.XMLSchemaFactory",
-                "javax.xml.accessExternalSchema" to "all"
+                    "javax.xml.parsers.DocumentBuilderFactory" to "com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl",
+                    "javax.xml.parsers.SAXParserFactory" to "com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl",
+                    "javax.xml.validation.SchemaFactory:http://www.w3.org/2001/XMLSchema" to "org.apache.xerces.internal.jaxp.validation.XMLSchemaFactory",
+                    "javax.xml.accessExternalSchema" to "all"
             )
 
             if (logger.isDebugEnabled) {
@@ -152,12 +152,12 @@ open class XjcTask @Inject constructor(
 
     private fun validateOptions() {
         val prohibitedOptions = mapOf(
-            "-classpath" to "Leads to resource leaks. Use the 'xjc', 'xjcBindings' or 'xjcPlugins' configuration instead",
-            "-d" to "Configured through the 'outputJavaDir' property",
-            "-b" to "Configured through the 'bindingFiles' property",
-            "-p" to "Configured through the 'defaultPackage' property",
-            "-episode" to "Configured through the 'generateEpisode' property",
-            "-mark-generated" to "Configured through the 'markGenerated' property"
+                "-classpath" to "Leads to resource leaks. Use the 'xjc', 'xjcBindings' or 'xjcPlugins' configuration instead",
+                "-d" to "Configured through the 'outputJavaDir' property",
+                "-b" to "Configured through the 'bindingFiles' property",
+                "-p" to "Configured through the 'defaultPackage' property",
+                "-episode" to "Configured through the 'generateEpisode' property",
+                "-mark-generated" to "Configured through the 'markGenerated' property"
         )
         options.get().forEach { option ->
             if (prohibitedOptions.containsKey(option)) {
@@ -181,10 +181,10 @@ open class XjcTask @Inject constructor(
                     logger.warn("No episodes (sun-jaxb.episode) found in bind jar file ${bindJarFile.name}")
                 } else {
                     episodeFiles.first().copyTo(
-                        tmpBindFiles
-                            .file(bindJarFile.name.removeSuffix(".jar") + ".episode")
-                            .get()
-                            .asFile
+                            tmpBindFiles
+                                    .file(bindJarFile.name.removeSuffix(".jar") + ".episode")
+                                    .get()
+                                    .asFile
                     )
                 }
             } else {
