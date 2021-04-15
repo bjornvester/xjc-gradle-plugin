@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "com.github.bjornvester"
-version = "1.5.1"
+version = "1.6.0"
 
 allprojects {
     repositories {
@@ -60,7 +60,7 @@ pluginBundle {
     (plugins) {
         "xjcPlugin" {
             description = """Changes:
-                            |- Restore support for Gradle 6.0 (while also supporting Gradle 7.0)""".trimMargin()
+                            |- Support grouping XSDs and generate them with different configurations""".trimMargin()
         }
     }
 }
