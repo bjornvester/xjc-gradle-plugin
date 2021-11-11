@@ -12,6 +12,7 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.*
 import org.gradle.workers.WorkerExecutor
 import javax.inject.Inject
@@ -38,13 +39,13 @@ open class XjcTask @Inject constructor(
     var xsdFiles = getXjcExtension().xsdFiles
 
     @get:Classpath
-    val xjcConfiguration: NamedDomainObjectProvider<Configuration> = project.configurations.named(XjcPlugin.XJC_CONFIGURATION_NAME)
+    val xjcConfiguration: Provider<Configuration> = project.configurations.named(XjcPlugin.XJC_CONFIGURATION_NAME)
 
     @get:Classpath
-    val xjcPluginsConfiguration: NamedDomainObjectProvider<Configuration> = project.configurations.named(XjcPlugin.XJC_PLUGINS_CONFIGURATION_NAME)
+    val xjcPluginsConfiguration: Provider<Configuration> = project.configurations.named(XjcPlugin.XJC_PLUGINS_CONFIGURATION_NAME)
 
     @get:Classpath
-    val xjcBindConfiguration: NamedDomainObjectProvider<Configuration> = project.configurations.named(XjcPlugin.XJC_BIND_CONFIGURATION_NAME)
+    val xjcBindConfiguration: Provider<Configuration> = project.configurations.named(XjcPlugin.XJC_BIND_CONFIGURATION_NAME)
 
     @Optional
     @Input
