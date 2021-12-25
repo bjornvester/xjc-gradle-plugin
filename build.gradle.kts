@@ -30,15 +30,13 @@ tasks.withType<Test>().configureEach {
 }
 
 tasks.withType<Wrapper> {
-    gradleVersion = "7.0"
+    gradleVersion = "7.3.3"
 }
 
-val compiler = javaToolchains.compilerFor {
-    languageVersion.set(JavaLanguageVersion.of(8))
-}
-
-tasks.withType<KotlinJvmCompile>().configureEach {
-    kotlinOptions.jdkHome = compiler.get().metadata.installationPath.asFile.absolutePath
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(8))
+    }
 }
 
 gradlePlugin {

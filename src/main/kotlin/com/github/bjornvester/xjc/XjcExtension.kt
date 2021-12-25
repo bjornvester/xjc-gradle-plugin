@@ -7,7 +7,7 @@ import org.gradle.api.model.ObjectFactory
 import javax.inject.Inject
 
 open class XjcExtension @Inject constructor(objects: ObjectFactory, layout: ProjectLayout) : XjcExtensionGroup {
-    val xjcVersion = objects.property(String::class.java).convention("2.3.3")
+    val xjcVersion = objects.property(String::class.java).value("2.3.3")
 
     override val name = "Defaults"
     override val xsdDir = objects.directoryProperty().convention(layout.projectDirectory.dir("src/main/resources"))

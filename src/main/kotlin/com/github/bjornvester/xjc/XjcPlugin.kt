@@ -9,6 +9,7 @@ import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.api.tasks.bundling.Jar
 import org.gradle.util.GradleVersion
 import java.io.Serializable
 
@@ -37,8 +38,9 @@ class XjcPlugin : Plugin<Project> {
         createConfiguration(project, XJC_BIND_CONFIGURATION_NAME)
         createConfiguration(project, XJC_PLUGINS_CONFIGURATION_NAME)
 
-        xjcConfiguration.defaultDependencies {
+        xjcConfiguration.withDependencies {
             addLater(extension.xjcVersion.map { project.dependencies.create("org.glassfish.jaxb:jaxb-xjc:$it") })
+            addLater(extension.xjcVersion.map { project.dependencies.create("org.glassfish.jaxb:jaxb-runtime:$it") })
         }
 
         if (GradleVersion.current() <= GradleVersion.version("6.8")) {
@@ -106,6 +108,10 @@ class XjcPlugin : Plugin<Project> {
         }
 
         project.tasks.named(JavaPlugin.COMPILE_JAVA_TASK_NAME) {
+            dependsOn(task)
+        }
+
+        project.tasks.withType(Jar::class.java).matching { it.name == "sourcesJar" }.all {
             dependsOn(task)
         }
 
