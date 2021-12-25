@@ -38,7 +38,7 @@ class XjcPlugin : Plugin<Project> {
         createConfiguration(project, XJC_BIND_CONFIGURATION_NAME)
         createConfiguration(project, XJC_PLUGINS_CONFIGURATION_NAME)
 
-        xjcConfiguration.defaultDependencies {
+        xjcConfiguration.withDependencies {
             addLater(extension.xjcVersion.map { project.dependencies.create("org.glassfish.jaxb:jaxb-xjc:$it") })
             addLater(extension.xjcVersion.map { project.dependencies.create("org.glassfish.jaxb:jaxb-runtime:$it") })
         }

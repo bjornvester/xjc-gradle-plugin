@@ -3,9 +3,8 @@ package com.github.bjornvester.xjc
 import com.github.bjornvester.xjc.XjcPlugin.Companion.XJC_EXTENSION_NAME
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
-import org.gradle.api.NamedDomainObjectProvider
-import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
@@ -39,13 +38,13 @@ open class XjcTask @Inject constructor(
     var xsdFiles = getXjcExtension().xsdFiles
 
     @get:Classpath
-    val xjcConfiguration: Provider<Configuration> = project.configurations.named(XjcPlugin.XJC_CONFIGURATION_NAME)
+    val xjcConfiguration: Provider<out FileCollection> = project.configurations.named(XjcPlugin.XJC_CONFIGURATION_NAME)
 
     @get:Classpath
-    val xjcPluginsConfiguration: Provider<Configuration> = project.configurations.named(XjcPlugin.XJC_PLUGINS_CONFIGURATION_NAME)
+    val xjcPluginsConfiguration: Provider<out FileCollection> = project.configurations.named(XjcPlugin.XJC_PLUGINS_CONFIGURATION_NAME)
 
     @get:Classpath
-    val xjcBindConfiguration: Provider<Configuration> = project.configurations.named(XjcPlugin.XJC_BIND_CONFIGURATION_NAME)
+    val xjcBindConfiguration: Provider<out FileCollection> = project.configurations.named(XjcPlugin.XJC_BIND_CONFIGURATION_NAME)
 
     @Optional
     @Input
@@ -89,7 +88,7 @@ open class XjcTask @Inject constructor(
         logger.info("Loading XSD files ${xsdFiles.files}")
         logger.debug("XSD files are loaded from ${xsdDir.get()}")
 
-        val xjcClasspath = xjcConfiguration.get().resolve() + xjcPluginsConfiguration
+        val xjcClasspath = xjcConfiguration.get().files + xjcPluginsConfiguration.get().files
         logger.debug("Loading JAR files for XJC: $xjcClasspath")
 
         extractBindFilesFromJars()
@@ -172,7 +171,7 @@ open class XjcTask @Inject constructor(
      * that causes the jar files to be locked on Windows. To avoid this, we extract the bind files ourselves.
      */
     private fun extractBindFilesFromJars() {
-        val bindJarFiles = xjcBindConfiguration.get().resolve()
+        val bindJarFiles = xjcBindConfiguration.get().files
         logger.debug("Loading binding JAR files: $bindJarFiles")
 
         bindJarFiles.forEach { bindJarFile ->
