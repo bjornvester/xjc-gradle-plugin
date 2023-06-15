@@ -10,5 +10,4 @@ repositories {
 xjc {
     generateEpisode.set(true)
     xsdFiles = files(xsdDir.file("MySchemaWithFunnyChar.xsd"))
-    xjcVersion.set("3.0.0")
 }

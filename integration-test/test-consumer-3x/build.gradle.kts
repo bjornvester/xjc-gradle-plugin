@@ -16,7 +16,3 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
 }
-
-xjc {
-    xjcVersion.set("3.0.0")
-}

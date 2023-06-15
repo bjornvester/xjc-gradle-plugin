@@ -1,3 +1,9 @@
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version ("0.5.0")
+}
+
+includeBuild("..")
+
 include(
         "test-producer-2x",
         "test-producer-3x",
@@ -5,5 +11,3 @@ include(
         "test-consumer-2x",
         "test-consumer-3x"
 )
-
-includeBuild("..")

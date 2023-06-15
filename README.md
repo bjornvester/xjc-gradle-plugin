@@ -2,32 +2,30 @@
 [![GitHub Actions status](https://github.com/bjornvester/xjc-gradle-plugin/workflows/CI/badge.svg)](https://github.com/bjornvester/xjc-gradle-plugin/actions)
 
 # xjc-gradle-plugin
+
 A Gradle plugin for running the XJC binding compiler to generate Java source code from XML schemas (xsd files) using JAXB.
 
 ## Requirements and features
-* **The plugin requires Gradle version 6.0 or later**. (Tested with Gradle 6.0 and 7.0.)
 
-* It has been tested with Java 8, Java 11 and Java 16.
-
-* It has been tested with XJC version 2.3.3 and 3.0.0 (from Jakarta EE). Defaults to 2.3.3.
-
+* The plugin requires Gradle version 6.7 or later.
+* It has been tested with Java 8 and Java 17.
+* It has been tested with XJC version 2.3.3 (using the `javax` namespace) and 3.0.2 (using the `jakarta` namespace). Defaults to the jakarta variant.
 * It supports the Gradle build cache (enabled by setting "org.gradle.caching=true" in your gradle.properties file).
-
+* It supports the Gradle configuration cache (enabled by setting `org.gradle.configuration-cache=true` in your gradle.properties file").
 * It supports project relocation for the build cache (e.g. you move your project to a new path, or make a new copy/clone of it).
-This is especially useful in a CI context, where you might clone PRs and/or branches for a repository in their own locations. 
-
+  This is especially useful in a CI context, where you might clone PRs and/or branches for a repository in their own locations.
 * It supports parallel execution (enabled with "org.gradle.parallel=true", possibly along with "org.gradle.priority=low", in your gradle.properties file).
-
-* It supports _most_, but not all (yet), of the functionality provided by XJC. Check the configuration section and the road map section to get an idea of what is possible.
-
-* It does _not_ yet fully support the Gradle instant execution cache (experimental at the time of this writing, enabled by "org.gradle.unsafe.configuration-cache=true")
+* It supports _most_, but not all (yet), of the functionality provided by XJC. Check the configuration section and the road map section to get an idea of what
+  is possible.
 
 ## Configuration
-Apply the plugin ID "com.github.bjornvester.xjc" as documented in the [Gradle Plugin portal page](https://plugins.gradle.org/plugin/com.github.bjornvester.xjc), e.g. like this (for the Groovy DSL):
+
+Apply the plugin ID "com.github.bjornvester.xjc" as documented in the [Gradle Plugin portal page](https://plugins.gradle.org/plugin/com.github.bjornvester.xjc),
+e.g. like this:
 
 ```kotlin
 plugins {
-  id("com.github.bjornvester.xjc") version "1.6.0"
+    id("com.github.bjornvester.xjc") version "1.7.0"
 }
 ```
 
@@ -41,21 +39,24 @@ xjc {
 
 Here is a list of all available properties:
 
-| Property           | Type                       | Default                                                                            | Description                                                                                                  |
-|--------------------|----------------------------|------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------|
-| xsdDir             | DirectoryProperty          | "$projectDir/src<br>/main/resources"                                               | The directory holding the xsd files to compile.                                                              |
-| xsdFiles           | FileCollection             | xsdDir<br>&nbsp;&nbsp;.asFileTree<br>&nbsp;&nbsp;.matching { include("**/*.xsd") } | The schemas to compile.<br>If empty, all files in the xsdDir will be compiled.                               |
-| outputJavaDir      | DirectoryProperty          | "$buildDir/generated<br>/sources/xjc/java"                                         | The output directory for the generated Java sources.<br>Note that it will be deleted when running XJC.       |
-| outputResourcesDir | DirectoryProperty          | "$buildDir/generated<br>/sources/xjc/resources"                                    | The output directory for the generated resources (if any).<br>Note that it will be deleted when running XJC. |
-| xjcVersion         | Provider\<String>          | "2.3.3"                                                                            | The version of XJC to use.                                                                                   |
-| defaultPackage     | Provider\<String>          | \[not set\]                                                                        | The default package for the generated Java classes.<br>If empty, XJC will infer it from the namespace.       |
-| generateEpisode    | Provider\<Boolean>         | false                                                                              | If true, generates an Episode file for the generated Java classes.                                           |
-| markGenerated      | Provider\<Boolean>         | true                                                                               | If true, marks the generated code with the annotation `@javax.annotation.Generated`.                         |
-| bindingFiles       | FileCollection             | \[empty\]                                                                          | The binding files to use in the schema compiler                                                              |
-| options            | ListProperty\<String>      | \[empty\]                                                                          | Options to pass to either the XJC core, or to third party plugins in the `xjcPlugins` configuration          |
-| groups             | NamedDomainObjectContainer | \[empty\]                                                                          | Allows you to group a set of XSDs and generate sources with different configurations. Requires Gradle 7.0 or higher. See below for details. |
+| Property                   | Type                       | Default                                                                            | Description                                                                                                                                                                                                   |
+|----------------------------|----------------------------|------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| xsdDir                     | DirectoryProperty          | "$projectDir/src<br>/main/resources"                                               | The directory holding the xsd files to compile.                                                                                                                                                               |
+| xsdFiles                   | FileCollection             | xsdDir<br>&nbsp;&nbsp;.asFileTree<br>&nbsp;&nbsp;.matching { include("**/*.xsd") } | The schemas to compile.<br>If empty, all files in the xsdDir will be compiled.                                                                                                                                |
+| outputJavaDir              | DirectoryProperty          | "$buildDir/generated<br>/sources/xjc/java"                                         | The output directory for the generated Java sources.<br>Note that it will be deleted when running XJC.                                                                                                        |
+| outputResourcesDir         | DirectoryProperty          | "$buildDir/generated<br>/sources/xjc/resources"                                    | The output directory for the generated resources (if any).<br>Note that it will be deleted when running XJC.                                                                                                  |
+| useJakarta                 | Provider\<Boolean>         | true                                                                               | Set to use the `jakarta` namespace. If false, uses the `javax` namespace. This value determines the default version of XJC and the JAXB binding provider.                                                     |
+| xjcVersion                 | Provider\<String>          | "3.0.2" for jakarta / "2.3.8" for javax                                            | The version of XJC to use.                                                                                                                                                                                    |
+| defaultPackage             | Provider\<String>          | \[not set\]                                                                        | The default package for the generated Java classes.<br>If empty, XJC will infer it from the namespace.                                                                                                        |
+| generateEpisode            | Provider\<Boolean>         | false                                                                              | If true, generates an Episode file for the generated Java classes.                                                                                                                                            |
+| markGenerated              | Provider\<Boolean>         | true                                                                               | If true, marks the generated code with the annotation `@javax.annotation.Generated`.                                                                                                                          |
+| bindingFiles               | FileCollection             | \[empty\]                                                                          | The binding files to use in the schema compiler                                                                                                                                                               |
+| options                    | ListProperty\<String>      | \[empty\]                                                                          | Options to pass to either the XJC core, or to third party plugins in the `xjcPlugins` configuration                                                                                                           |
+| groups                     | NamedDomainObjectContainer | \[empty\]                                                                          | Allows you to group a set of XSDs and generate sources with different configurations. Requires Gradle 7.0 or higher. See below for details.                                                                   |
+| addCompilationDependencies | Provider\<Boolean>         | true                                                                               | Adds dependencies to the `implementation` configuration for compiling the generated sources. These includes `jakarta.xml.bind:jakarta.xml.bind-api` and possibly `jakarta.annotation:jakarta.annotation-api`. |
 
 ### Choosing which schemas to generate source code for
+
 By default, it will compile all XML schemas (xsd files) found in the src/main/resource folder.
 You can change to another folder through the following configuration:
 
@@ -72,8 +73,8 @@ Here is an example where all schema files are referenced relative to the xsdDir 
 ```kotlin
 xjc {
     xsdFiles = project.files(
-        xsdDir.file("MySchema1.xsd"),
-        xsdDir.file("MySchema2.xsd")
+            xsdDir.file("MySchema1.xsd"),
+            xsdDir.file("MySchema2.xsd")
     )
     // Or
     xsdFiles = xsdDir.asFileTree.matching { include("subfolder/**/*.xsd") }
@@ -81,26 +82,29 @@ xjc {
 ```
 
 ### Customizing the build dependencies
-By default, it will use XJC version 2.3.3 to compile the schemas.
+
+By default, it will use XJC version 3.0.2 to compile the schemas.
 You can set another version through the xjcVersion property like this:
 
 ```kotlin
 xjc {
-    xjcVersion.set("3.0.0")
+    xjcVersion.set("2.3.8")
+    useJakarta.set(false)
 }
 ```
 
-As it uses the Jakarta version of the tool with new Maven coordinates, the older versions from Oracle are not supported.
-You can check if there is a newer version of the tool either on the official [Github repository](https://github.com/eclipse-ee4j/jaxb-ri/releases)
-or by searching for the group and name "org.glassfish.jaxb:jaxb-xjc", e.g. through [MvnRepository](https://mvnrepository.com/artifact/org.glassfish.jaxb/jaxb-xjc).
+If you specify a version in the 2.x range, which generates source code with the javax namespace, you should also set the `useJakarta` configration to false.
+Note that setting `useJakarta` to false, it will by default select an appropriate version in the 2.x range.
 
 By applying the plugin, it will register the Java plugin as well if it isn't there already (so the generated source code can be compiled).
-It will also add the dependency "jakarta.xml.bind:jakarta.xml.bind-api" to your implementation configuration, as this is needed to compile the source code.
-If your project is going to be deployed on a Java/Jakarta EE application server, you may want to exclude this dependency from your runtime and instead use whatever your application server is providing.
-
-Note that XJC 3.x uses the `jakarta.xml` package namespace, whereas 2.x uses `javax.xml`.
+It will also by default add the dependency `jakarta.xml.bind:jakarta.xml.bind-api` to your implementation configuration, as this is needed to compile the source
+code.
+If your project is going to be deployed on a Java/Jakarta EE application server, you may want to exclude this dependency from your runtime and instead use
+whatever your application server is providing.
+This can be done by setting the configuration `addCompilationDependencies` to false.
 
 ### Choosing the file encoding
+
 If your schemas contain characters that do not match your default platform encoding (on western versions of Windows, this will probably be CP-1252),
 set the encoding through the file.encoding property for Gradle.
 For example, to use UTF-8, put this in your gradle.property file:
@@ -119,6 +123,7 @@ export LANG=C.UTF-8
 ```
 
 ### Enabling the use of the @Generated annotation
+
 If you like to have the generated source code marked with the `@javax.annotation.Generated` annotation, set the `markGenerated` property to true like this:
 
 ```kotlin
@@ -131,7 +136,9 @@ Note that while this annotation is found in the Java 8 SDK, it is not present in
 (However, there is a `@javax.annotation.processing.Generated` annotation, notice the `processing` sub-package, but this is not yet supported by this plugin.)
 
 ### Generating episode files
-XJC can generate an episode file, which is basically an extended binding file that specifies how the the schema types are associated with the generated Java classes.
+
+XJC can generate an episode file, which is basically an extended binding file that specifies how the the schema types are associated with the generated Java
+classes.
 
 You can enable the generation using the generateEpisode property like this:
 
@@ -144,7 +151,9 @@ xjc {
 The file will be generated at META-INF/sun-jaxb.episode and added as a resource to the main source set.
 
 ### Consuming episode files
-XJC can consume the episode files so that it is possible to compile java classes from a schema in one project, and consume it in XJC generators in other projects so you don't have to compile the same schemas multiple times.
+
+XJC can consume the episode files so that it is possible to compile java classes from a schema in one project, and consume it in XJC generators in other
+projects so you don't have to compile the same schemas multiple times.
 To do this, you need to add the jar file to the configuration named "xjcBindings".
 
 For multi-projects, assuming the episode file is generated in a project called "test-producer", you can do this like this:
@@ -157,6 +166,7 @@ dependencies {
 ```
 
 ### Consuming binding files
+
 You can also provide your own binding files (or custom episode files) through the bindingFiles property:
 
 ```kotlin
@@ -166,14 +176,15 @@ xjc {
 ```
 
 ### Activating (third party) XJC plugins
+
 To use third party plugins, supply the relevant dependencies to the `xjcPlugins` configuration.
 Then set the plugin options through the `options` property.
 
-For example, to use the "Copyable" plugin from the [JAXB2 Basics](https://github.com/highsource/jaxb2-basics) project, configure the following: 
+For example, to use the "Copyable" plugin from the [JAXB2 Basics](https://github.com/highsource/jaxb2-basics) project, configure the following:
 
 ```kotlin
 dependencies {
-    xjcPlugins("org.jvnet.jaxb2_commons:jaxb2-basics:1.11.1")
+    xjcPlugins("org.jvnet.jaxb2_commons:jaxb2-basics:0.13.1")
 }
 
 xjc {
@@ -181,13 +192,15 @@ xjc {
 }
 ```
 
-Note that the above plugin is only compatible with JAXB 2.x.
+Note that the above plugin is only compatible with JAXB 2.x, at least at the time of this writing.
+There is a fork [here](https://github.com/patrodyne/hisrc-basicjaxb) that you may try for JAXB 3.x and the `jakarta` namespace.
 
 If you have trouble activating a plugin and is unsure whether it has been registered, you can run Gradle with the --debug option.
 This will print additional information on what plugins were found, what their option names are, and what plugins were activated.
 Note that in order to activate a third-party plugin, you must always provide at least one option (and usually just one) from the plugin.
 
 ### Supporting Date/Time APIs introduced in Java 8
+
 By default, XJC will map date and time types to difficult-to-use Java types like XMLGregorianCalendar.
 If you like to use the newer Data/Time APIs from package java.time, you must use a mapper and write a custom binding file.
 
@@ -196,27 +209,30 @@ If you like to use this one, include it as a dependency:
 
 ```kotlin
 dependencies {
-    implementation("io.github.threeten-jaxb:threeten-jaxb-core:1.2")
+    implementation("io.github.threeten-jaxb:threeten-jaxb-core:2.1.0") // This version is for Jakarta
 }
 ```
 
-Then create a binding file with content with the types you like to map.
-
-For XJC 2.x, it could be:
+Then create a binding file with content with the types you like to map:
 
 ```xml
-<bindings xmlns="http://java.sun.com/xml/ns/jaxb" version="2.1"
-          xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc">
+
+<bindings xmlns="https://jakarta.ee/xml/ns/jaxb"
+          xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+          jaxb:version="3.0"
+          jaxb:extensionBindingPrefixes="xjc">
     <globalBindings>
-        <xjc:javaType name="java.time.OffsetDate" xmlType="xs:date"
-                      adapter="io.github.threetenjaxb.core.OffsetTimeXmlAdapter"/>
-        <xjc:javaType name="java.time.OffsetDateTime" xmlType="xs:dateTime"
-                      adapter="io.github.threetenjaxb.core.OffsetDateTimeXmlAdapter"/>
+        <xjc:javaType name="java.time.LocalDate" xmlType="xs:date" adapter="io.github.threetenjaxb.core.LocalDateXmlAdapter"/>
+        <xjc:javaType name="java.time.LocalDateTime" xmlType="xs:dateTime" adapter="io.github.threetenjaxb.core.LocalDateTimeXmlAdapter"/>
+        <xjc:javaType name="java.time.YearMonth" xmlType="xs:gYearMonth" adapter="io.github.threetenjaxb.core.YearMonthXmlAdapter"/>
+        <xjc:javaType name="java.time.Duration" xmlType="xs:duration" adapter="io.github.threetenjaxb.core.DurationXmlAdapter"/>
+        <xjc:javaType name="java.time.OffsetDate" xmlType="xs:date" adapter="io.github.threetenjaxb.core.OffsetTimeXmlAdapter"/>
+        <xjc:javaType name="java.time.OffsetDateTime" xmlType="xs:dateTime" adapter="io.github.threetenjaxb.core.OffsetDateTimeXmlAdapter"/>
     </globalBindings>
 </bindings>
 ```
 
-For XJC 3.x, you have to supply your own adapter methods as the format has changed.
+In the above, for `javax`, use version 1.2.0 and the binding attributes to `xmlns="http://java.sun.com/xml/ns/jaxb" version="2.1"`.
 
 Lastly, configure XJC to use the binding file (in this case it is called `src/main/bindings/bindings.xml`):
 
@@ -227,6 +243,7 @@ xjc {
 ```
 
 ## Generate resources with different configurations
+
 _The grouping functionality described here requires Gradle 7.0 or higher_
 
 If you require building a subset of XSDs with different configurations (e.g. package names), you can use `group` property.
@@ -238,7 +255,7 @@ Example:
 ```kotlin
 xjc {
     // Defaults
-    xjcVersion.set("3.0.0")
+    markGenerated.set(true)
 
     groups {
         register("group1") {
@@ -259,19 +276,19 @@ You will also not be able to reference between groups.
 If you require this, you should instead separate the build into individual projects.
 
 ## Road map
+
 Here are some of the features I like to implement at some point.
 
 * Support the "-npa" option in XJC, suppressing the generation of package level annotations.
 * Support for catalog files.
 * Support for schemas in wsdl files.
 * Support for optionally adding "if-exists" attributes to generated episode files to prevent failures on unreferenced schemas.
-* Support for choosing which, if any, Gradle configuration to add the required dependencies to (e.g. `implementation`, `compileOnly` or none).
-* Support for the @Generated annotation on Java 9+
 * Document how to use the XJC task directly (for having multiple XJC tasks in the same Gradle project)
-* Support date/time adapters for XJC 3.0+
 
 You are welcome to create issues and PRs for anything else.
 
 ## Alternatives
-If you need additional functionality than what is provided here, you may want to try the one from [unbroken-dome](https://github.com/unbroken-dome/gradle-xjc-plugin).
+
+If you need additional functionality than what is provided here, you may want to try the one
+from [unbroken-dome](https://github.com/unbroken-dome/gradle-xjc-plugin).
 It was created after this project, so I haven't tried it myself. It appears to be of high quality.
