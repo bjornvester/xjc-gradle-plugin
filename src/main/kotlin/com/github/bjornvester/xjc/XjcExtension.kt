@@ -4,10 +4,13 @@ import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Property
 import javax.inject.Inject
 
 open class XjcExtension @Inject constructor(objects: ObjectFactory, layout: ProjectLayout) : XjcExtensionGroup {
-    val xjcVersion = objects.property(String::class.java).convention("2.3.3")
+    val useJakarta = objects.property(Boolean::class.java).convention(true)
+    val xjcVersion = objects.property(String::class.java).convention(useJakarta.map { if (it) "3.0.2" else "2.3.8" })
+    val addCompilationDependencies: Property<Boolean> = objects.property(Boolean::class.java).convention(true)
 
     override val name = "Defaults"
     override val xsdDir = objects.directoryProperty().convention(layout.projectDirectory.dir("src/main/resources"))
@@ -28,7 +31,6 @@ open class XjcExtension @Inject constructor(objects: ObjectFactory, layout: Proj
             xsdFiles = objects.fileCollection() // Once this field is "val", change to a convention
             outputJavaDir.convention(layout.buildDirectory.dir("generated/sources/xjc-$name/java"))
             outputResourcesDir.convention(layout.buildDirectory.dir("generated/sources/xjc-$name/resources"))
-            xjcVersion.convention(this@XjcExtension.xjcVersion)
             defaultPackage.convention(this@XjcExtension.defaultPackage)
             generateEpisode.convention(this@XjcExtension.generateEpisode)
             bindingFiles = objects.fileCollection() // Once this field is "val", change to a convention

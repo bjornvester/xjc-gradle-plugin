@@ -13,24 +13,8 @@ abstract class XjcWorker : WorkAction<XjcWorkerParams> {
     private val logger: Logger = LoggerFactory.getLogger(XjcWorker::class.java)
 
     override fun execute() {
-        try {
-            doWork()
-        } finally {
-            /*
-                There is a file leak in XJC (in class PluginImpl) when generating episodes.
-                The leaking resource gets closed in a finalize method, so attempt to do that by nudging the VM to garbage collect it.
-                No guarantees of cause.
-                A PR to fix the leak has been created here: https://github.com/eclipse-ee4j/jaxb-ri/pull/1339.
-                At the time of this writing, it has not been merged in yet (and even if/when it does, it will probably take a while for a new release to come out).
-            */
-            System.gc()
-        }
-    }
-
-    private fun doWork() {
         val options = Options()
-        options.disableXmlSecurity =
-                true // Avoids SAXNotRecognizedExceptions in certain places (though not everywhere) - see the note in XjcTask for additional information on this
+        options.disableXmlSecurity = true // Avoids SAXNotRecognizedExceptions in certain places (though not everywhere) - see the note in XjcTask for additional information on this
         configureGeneratedEpisodeFile(options)
 
         if (parameters.bindFiles.isNotEmpty()) {

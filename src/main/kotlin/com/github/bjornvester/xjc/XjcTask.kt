@@ -13,13 +13,14 @@ import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
+import org.gradle.util.GradleVersion
 import org.gradle.workers.WorkerExecutor
 import javax.inject.Inject
 
 @CacheableTask
 open class XjcTask @Inject constructor(
         private val workerExecutor: WorkerExecutor,
-        objectFactory: ObjectFactory,
+        private val objectFactory: ObjectFactory,
         projectLayout: ProjectLayout,
         private val fileSystemOperations: FileSystemOperations
 ) : DefaultTask() {
@@ -38,13 +39,13 @@ open class XjcTask @Inject constructor(
     var xsdFiles = getXjcExtension().xsdFiles
 
     @get:Classpath
-    val xjcConfiguration: NamedDomainObjectProvider<Configuration> = project.configurations.named(XjcPlugin.XJC_CONFIGURATION_NAME)
+    val xjcConfiguration = objectFactory.fileCollection()
 
     @get:Classpath
-    val xjcPluginsConfiguration: NamedDomainObjectProvider<Configuration> = project.configurations.named(XjcPlugin.XJC_PLUGINS_CONFIGURATION_NAME)
+    val xjcPluginsConfiguration = objectFactory.fileCollection()
 
     @get:Classpath
-    val xjcBindConfiguration: NamedDomainObjectProvider<Configuration> = project.configurations.named(XjcPlugin.XJC_BIND_CONFIGURATION_NAME)
+    val xjcBindConfiguration = objectFactory.fileCollection()
 
     @Optional
     @Input
@@ -86,10 +87,10 @@ open class XjcTask @Inject constructor(
         validateOptions()
 
         logger.info("Loading XSD files ${xsdFiles.files}")
-        logger.debug("XSD files are loaded from ${xsdDir.get()}")
+        logger.debug("XSD files are loaded from {}", xsdDir.get())
 
-        val xjcClasspath = xjcConfiguration.get().resolve() + xjcPluginsConfiguration
-        logger.debug("Loading JAR files for XJC: $xjcClasspath")
+        val xjcClasspath = xjcConfiguration + xjcPluginsConfiguration
+        logger.debug("Loading JAR files for XJC: {}", xjcClasspath)
 
         extractBindFilesFromJars()
         val allBindingFiles = tmpBindFiles.asFileTree.files + bindingFiles.files
@@ -111,7 +112,7 @@ open class XjcTask @Inject constructor(
             /*
             All gradle worker processes have Xerces2 on the classpath.
             This version of Xerces does not support checking for external file access (even if not used).
-            This causes it to log a whole bunch of stack traces on the form:
+            This causes it to log a bunch of stack traces on the form:
             -- Property "http://javax.xml.XMLConstants/property/accessExternalSchema" is not supported by used JAXP implementation.
             To avoid this, we fork the worker API to a separate process where we can set system properties to select which implementation of a SAXParser to use.
             The JDK comes with an internal implementation of a SAXParser, also based on Xerces, but supports the properties to control external file access.
@@ -129,7 +130,10 @@ open class XjcTask @Inject constructor(
             }
 
             // Set encoding (work-around for https://github.com/gradle/gradle/issues/13843)
-            forkOptions.environment("LANG", System.getenv("LANG") ?: "C.UTF-8")
+            // Might be fixed in Gradle 8.3 (unreleased at the time of this writing) - waiting to test it
+            //if (GradleVersion.current() < GradleVersion.version("8.3")) {
+                forkOptions.environment("LANG", System.getenv("LANG") ?: "C.UTF-8")
+            //}
 
             classpath.from(xjcClasspath)
         }
@@ -171,12 +175,11 @@ open class XjcTask @Inject constructor(
      * that causes the jar files to be locked on Windows. To avoid this, we extract the bind files ourselves.
      */
     private fun extractBindFilesFromJars() {
-        val bindJarFiles = xjcBindConfiguration.get().resolve()
-        logger.debug("Loading binding JAR files: $bindJarFiles")
+        logger.debug("Loading binding JAR files: {}", xjcBindConfiguration)
 
-        bindJarFiles.forEach { bindJarFile ->
+        xjcBindConfiguration.forEach { bindJarFile ->
             if (bindJarFile.extension == "jar") {
-                val episodeFiles = project.zipTree(bindJarFile).filter { it.name == "sun-jaxb.episode" }.files
+                val episodeFiles = objectFactory.fileTree().from(bindJarFile).filter { it.name == "sun-jaxb.episode" }.files
                 if (episodeFiles.isEmpty()) {
                     logger.warn("No episodes (sun-jaxb.episode) found in bind jar file ${bindJarFile.name}")
                 } else {

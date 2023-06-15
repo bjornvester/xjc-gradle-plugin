@@ -25,4 +25,5 @@ tasks.test {
 xjc {
     xsdDir.set(project.file("$projectDir/src/main/custom-xsd-folder"))
     options.add("-Xcopyable")
+    useJakarta.set(false)
 }

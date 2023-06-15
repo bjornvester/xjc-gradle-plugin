@@ -5,16 +5,16 @@ plugins {
 }
 
 group = "com.github.bjornvester"
-version = "1.7.0-SNAPSHOT"
+version = "1.7.0"
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    compileOnly("org.glassfish.jaxb:jaxb-xjc:2.3.3")
-    testImplementation("commons-io:commons-io:2.8.0")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.1")
+    compileOnly("org.glassfish.jaxb:jaxb-xjc:2.3.8")
+    testImplementation("commons-io:commons-io:2.13.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.3")
     testImplementation("org.junit.jupiter:junit-jupiter-params")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 }
@@ -45,7 +45,11 @@ gradlePlugin {
             displayName = "Gradle XJC plugin"
             tags.set(listOf("xjc", "jaxb", "xsd"))
             description = """Changes:
-                            |- Support grouping XSDs and generate them with different configurations""".trimMargin()
+                |- Added support for the Gradle configuration cache.
+                |- It now defaults to XJC 3.x, generating source code using the jakarta namespace. This can be changed back to using javax with a configuration change.
+                |- Minor bump of default versions.
+                |- Added configurations "useJakarta" and "addCompilationDependencies".
+                |- Minimum required of version of Gradle is now 6.7 (up from 6.0).""".trimMargin()
         }
     }
 }
