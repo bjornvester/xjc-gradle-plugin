@@ -1,18 +1,14 @@
-import org.jetbrains.kotlin.gradle.dsl.KotlinJvmCompile
-
 plugins {
     `kotlin-dsl`
     id("java-gradle-plugin")
-    id("com.gradle.plugin-publish") version "0.14.0"
+    id("com.gradle.plugin-publish") version "1.2.0"
 }
 
 group = "com.github.bjornvester"
-version = "1.6.0"
+version = "1.7.0-SNAPSHOT"
 
-allprojects {
-    repositories {
-        mavenCentral()
-    }
+repositories {
+    mavenCentral()
 }
 
 dependencies {
@@ -30,35 +26,24 @@ tasks.withType<Test>().configureEach {
 }
 
 tasks.withType<Wrapper> {
-    gradleVersion = "7.0"
+    gradleVersion = "latest"
 }
 
-val compiler = javaToolchains.compilerFor {
-    languageVersion.set(JavaLanguageVersion.of(8))
-}
-
-tasks.withType<KotlinJvmCompile>().configureEach {
-    kotlinOptions.jdkHome = compiler.get().metadata.installationPath.asFile.absolutePath
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(8))
+    }
 }
 
 gradlePlugin {
+    website.set("https://github.com/bjornvester/xjc-gradle-plugin")
+    vcsUrl.set("https://github.com/bjornvester/xjc-gradle-plugin")
     plugins {
         create("xjcPlugin") {
             id = "com.github.bjornvester.xjc"
             implementationClass = "com.github.bjornvester.xjc.XjcPlugin"
             displayName = "Gradle XJC plugin"
-            description = """A plugin that generates Java source code for XML schemas (xsd files) using the XJC tool.
-                            |Please see the Github project page for details.""".trimMargin()
-        }
-    }
-}
-
-pluginBundle {
-    website = "https://github.com/bjornvester/xjc-gradle-plugin"
-    vcsUrl = "https://github.com/bjornvester/xjc-gradle-plugin"
-    tags = listOf("xjc", "jaxb", "xsd")
-    (plugins) {
-        "xjcPlugin" {
+            tags.set(listOf("xjc", "jaxb", "xsd"))
             description = """Changes:
                             |- Support grouping XSDs and generate them with different configurations""".trimMargin()
         }
