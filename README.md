@@ -25,7 +25,7 @@ e.g. like this:
 
 ```kotlin
 plugins {
-    id("com.github.bjornvester.xjc") version "1.7.0"
+    id("com.github.bjornvester.xjc") version "1.7.1"
 }
 ```
 
@@ -49,7 +49,7 @@ Here is a list of all available properties:
 | xjcVersion                 | Provider\<String>          | "3.0.2" for jakarta / "2.3.8" for javax                                            | The version of XJC to use.                                                                                                                                                                                    |
 | defaultPackage             | Provider\<String>          | \[not set\]                                                                        | The default package for the generated Java classes.<br>If empty, XJC will infer it from the namespace.                                                                                                        |
 | generateEpisode            | Provider\<Boolean>         | false                                                                              | If true, generates an Episode file for the generated Java classes.                                                                                                                                            |
-| markGenerated              | Provider\<Boolean>         | true                                                                               | If true, marks the generated code with the annotation `@javax.annotation.Generated`.                                                                                                                          |
+| markGenerated              | Provider\<Boolean>         | false                                                                              | If true, marks the generated code with the annotation `@javax.annotation.Generated`.                                                                                                                          |
 | bindingFiles               | FileCollection             | \[empty\]                                                                          | The binding files to use in the schema compiler                                                                                                                                                               |
 | options                    | ListProperty\<String>      | \[empty\]                                                                          | Options to pass to either the XJC core, or to third party plugins in the `xjcPlugins` configuration                                                                                                           |
 | groups                     | NamedDomainObjectContainer | \[empty\]                                                                          | Allows you to group a set of XSDs and generate sources with different configurations. Requires Gradle 7.0 or higher. See below for details.                                                                   |
@@ -137,7 +137,7 @@ Note that while this annotation is found in the Java 8 SDK, it is not present in
 
 ### Generating episode files
 
-XJC can generate an episode file, which is basically an extended binding file that specifies how the the schema types are associated with the generated Java
+XJC can generate an episode file, which is basically an extended binding file that specifies how the schema types are associated with the generated Java
 classes.
 
 You can enable the generation using the generateEpisode property like this:
@@ -153,7 +153,7 @@ The file will be generated at META-INF/sun-jaxb.episode and added as a resource 
 ### Consuming episode files
 
 XJC can consume the episode files so that it is possible to compile java classes from a schema in one project, and consume it in XJC generators in other
-projects so you don't have to compile the same schemas multiple times.
+projects, so you don't have to compile the same schemas multiple times.
 To do this, you need to add the jar file to the configuration named "xjcBindings".
 
 For multi-projects, assuming the episode file is generated in a project called "test-producer", you can do this like this:
