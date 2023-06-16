@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.github.bjornvester"
-version = "1.7.0"
+version = "1.7.1"
 
 repositories {
     mavenCentral()
@@ -45,11 +45,13 @@ gradlePlugin {
             displayName = "Gradle XJC plugin"
             tags.set(listOf("xjc", "jaxb", "xsd"))
             description = """Changes:
-                |- Added support for the Gradle configuration cache.
-                |- It now defaults to XJC 3.x, generating source code using the jakarta namespace. This can be changed back to using javax with a configuration change.
-                |- Minor bump of default versions.
-                |- Added configurations "useJakarta" and "addCompilationDependencies".
-                |- Minimum required of version of Gradle is now 6.7 (up from 6.0).""".trimMargin()
+                |- Fixed a problem with a missing runtime dependency.
+                |Changelog from 1.7.0:
+                |  - Added support for the Gradle configuration cache.
+                |  - It now defaults to XJC 3.x, generating source code using the jakarta namespace. This can be changed back to using javax with a configuration change.
+                |  - Minor bump of default versions.
+                |  - Added configurations "useJakarta" and "addCompilationDependencies".
+                |  - Minimum required of version of Gradle is now 6.7 (up from 6.0).""".trimMargin()
         }
     }
 }
