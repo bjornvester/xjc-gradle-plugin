@@ -84,6 +84,9 @@ open class XjcTask @Inject constructor(
         outputJavaDir.get().asFile.mkdirs()
         outputResourcesDir.get().asFile.mkdirs()
 
+        xsdFiles = getXjcExtension().xsdFiles
+        bindingFiles = getXjcExtension().bindingFiles
+
         validateOptions()
 
         logger.info("Loading XSD files ${xsdFiles.files}")
