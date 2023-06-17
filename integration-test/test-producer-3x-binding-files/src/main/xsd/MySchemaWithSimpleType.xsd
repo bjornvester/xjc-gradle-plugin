@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:tsk="http://github.com/bjornvester/producer"
+           targetNamespace="http://github.com/bjornvester/producer"
+           elementFormDefault="qualified"
+           version="1.0">
+    <xs:element name="MyElement">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="name" type="tsk:MyDateType"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:simpleType name="MyDateType">
+        <xs:restriction base="xs:dateTime"/>
+    </xs:simpleType>
+</xs:schema>

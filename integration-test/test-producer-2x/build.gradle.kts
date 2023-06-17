@@ -9,6 +9,6 @@ repositories {
 
 xjc {
     generateEpisode.set(true)
-    xsdFiles = files(xsdDir.file("MySchemaWithFunnyChar.xsd"))
+    includes.set(listOf("MySchemaWithFunnyChar.xsd"))
     useJakarta.set(false)
 }
