@@ -20,11 +20,11 @@ tasks.test {
 xjc {
     groups {
         register("group1") {
-            xsdFiles = files(xsdDir.file("MySchemaWithFunnyChar.xsd"))
+            includes.set(listOf("MySchemaWithFunnyChar.xsd"))
             defaultPackage.set("com.example.group1")
         }
         register("group2") {
-            xsdFiles = files(xsdDir.file("MySchemaWithFunnyChar.xsd"))
+            includes.set(listOf("MySchemaWithFunnyChar.xsd"))
             defaultPackage.set("com.example.group2")
         }
     }

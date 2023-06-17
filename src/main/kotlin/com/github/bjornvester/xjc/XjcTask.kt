@@ -3,8 +3,6 @@ package com.github.bjornvester.xjc
 import com.github.bjornvester.xjc.XjcPlugin.Companion.XJC_EXTENSION_NAME
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
-import org.gradle.api.NamedDomainObjectProvider
-import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
@@ -13,30 +11,31 @@ import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
-import org.gradle.util.GradleVersion
 import org.gradle.workers.WorkerExecutor
 import javax.inject.Inject
 
 @CacheableTask
 open class XjcTask @Inject constructor(
-        private val workerExecutor: WorkerExecutor,
-        private val objectFactory: ObjectFactory,
-        projectLayout: ProjectLayout,
-        private val fileSystemOperations: FileSystemOperations
+    private val workerExecutor: WorkerExecutor,
+    private val objectFactory: ObjectFactory,
+    projectLayout: ProjectLayout,
+    private val fileSystemOperations: FileSystemOperations
 ) : DefaultTask() {
     @get:Optional
     @get:Input
     val defaultPackage: Property<String> = objectFactory.property(String::class.java).convention(getXjcExtension().defaultPackage)
 
-    // Only used for up-to-date checking
     @get:InputDirectory
     @get:PathSensitive(PathSensitivity.RELATIVE)
     val xsdDir: DirectoryProperty = objectFactory.directoryProperty().convention(getXjcExtension().xsdDir)
 
     @Optional
-    @get:InputFiles
-    @get:PathSensitive(PathSensitivity.RELATIVE)
-    var xsdFiles = getXjcExtension().xsdFiles
+    @get:Input
+    val includes = objectFactory.listProperty(String::class.java).convention(getXjcExtension().includes)
+
+    @Optional
+    @get:Input
+    val excludes = objectFactory.listProperty(String::class.java).convention(getXjcExtension().excludes)
 
     @get:Classpath
     val xjcConfiguration = objectFactory.fileCollection()
@@ -54,7 +53,7 @@ open class XjcTask @Inject constructor(
     @Optional
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
-    var bindingFiles = getXjcExtension().bindingFiles
+    val bindingFiles = objectFactory.fileCollection().from(getXjcExtension().bindingFiles)
 
     @get:Input
     val options: ListProperty<String> = objectFactory.listProperty(String::class.java).convention(getXjcExtension().options)
@@ -69,7 +68,7 @@ open class XjcTask @Inject constructor(
     val outputResourcesDir: DirectoryProperty = objectFactory.directoryProperty().convention(getXjcExtension().outputResourcesDir)
 
     @get:Internal
-    val tmpBindFiles: DirectoryProperty = objectFactory.directoryProperty().convention(projectLayout.buildDirectory.dir("xjc/extracted-bind-files"))
+    val tmpBindFilesDir: DirectoryProperty = objectFactory.directoryProperty().convention(projectLayout.buildDirectory.dir("xjc/extracted-bind-files"))
 
     init {
         group = BasePlugin.BUILD_GROUP
@@ -78,22 +77,27 @@ open class XjcTask @Inject constructor(
 
     @TaskAction
     fun doCodeGeneration() {
-        fileSystemOperations.delete { delete(outputJavaDir) }
-        fileSystemOperations.delete { delete(outputResourcesDir) }
-        fileSystemOperations.delete { delete(tmpBindFiles) }
+        delete(outputJavaDir)
+        delete(outputResourcesDir)
+        delete(tmpBindFilesDir)
         outputJavaDir.get().asFile.mkdirs()
         outputResourcesDir.get().asFile.mkdirs()
 
         validateOptions()
 
-        logger.info("Loading XSD files ${xsdFiles.files}")
+        val xsdFilesAsFilteredFileTree = xsdDir.asFileTree.matching {
+            include(this@XjcTask.includes.getOrElse(listOf()))
+            exclude(this@XjcTask.excludes.getOrElse(listOf()))
+        }
+
+        logger.info("Loading XSD files ${xsdFilesAsFilteredFileTree.files}")
         logger.debug("XSD files are loaded from {}", xsdDir.get())
 
         val xjcClasspath = xjcConfiguration + xjcPluginsConfiguration
         logger.debug("Loading JAR files for XJC: {}", xjcClasspath)
 
         extractBindFilesFromJars()
-        val allBindingFiles = tmpBindFiles.asFileTree.files + bindingFiles.files
+        val allBindingFiles = tmpBindFilesDir.asFileTree.files + bindingFiles.files
 
         if (allBindingFiles.isNotEmpty()) {
             logger.info("Loading binding files: $allBindingFiles")
@@ -108,6 +112,8 @@ open class XjcTask @Inject constructor(
             logger.info("Generating episode file in $episodeFilepathArg")
         }
 
+        // When debugging, temporarily change processIsolation to classLoaderIsolation and remove the forkOptions
+        // There is a forkOptions.debug configuration that can be used instead, but unsure how to make it work
         val workQueue = workerExecutor.processIsolation {
             /*
             All gradle worker processes have Xerces2 on the classpath.
@@ -118,12 +124,11 @@ open class XjcTask @Inject constructor(
             The JDK comes with an internal implementation of a SAXParser, also based on Xerces, but supports the properties to control external file access.
             */
             forkOptions.systemProperties = mapOf(
-                    "javax.xml.parsers.DocumentBuilderFactory" to "com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl",
-                    "javax.xml.parsers.SAXParserFactory" to "com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl",
-                    "javax.xml.validation.SchemaFactory:http://www.w3.org/2001/XMLSchema" to "org.apache.xerces.internal.jaxp.validation.XMLSchemaFactory",
-                    "javax.xml.accessExternalSchema" to "all"
+                "javax.xml.parsers.DocumentBuilderFactory" to "com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl",
+                "javax.xml.parsers.SAXParserFactory" to "com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl",
+                "javax.xml.validation.SchemaFactory:http://www.w3.org/2001/XMLSchema" to "org.apache.xerces.internal.jaxp.validation.XMLSchemaFactory",
+                "javax.xml.accessExternalSchema" to "all"
             )
-
             if (logger.isDebugEnabled) {
                 // This adds debugging information on the XJC method used to find and load services (plugins)
                 forkOptions.systemProperties["com.sun.tools.xjc.Options.findServices"] = ""
@@ -132,7 +137,7 @@ open class XjcTask @Inject constructor(
             // Set encoding (work-around for https://github.com/gradle/gradle/issues/13843)
             // Might be fixed in Gradle 8.3 (unreleased at the time of this writing) - waiting to test it
             //if (GradleVersion.current() < GradleVersion.version("8.3")) {
-                forkOptions.environment("LANG", System.getenv("LANG") ?: "C.UTF-8")
+            forkOptions.environment("LANG", System.getenv("LANG") ?: "C.UTF-8")
             //}
 
             classpath.from(xjcClasspath)
@@ -142,7 +147,7 @@ open class XjcTask @Inject constructor(
 
         workQueue.submit(XjcWorker::class.java) {
             val task = this@XjcTask
-            xsdFiles = task.xsdFiles.files
+            xsdFiles = xsdFilesAsFilteredFileTree.files
             outputJavaDir = task.outputJavaDir.get().asFile
             outputResourceDir = task.outputResourcesDir.get().asFile
             defaultPackage = task.defaultPackage
@@ -154,14 +159,18 @@ open class XjcTask @Inject constructor(
         }
     }
 
+    private fun delete(dir: DirectoryProperty) {
+        if (dir.get().asFile.exists()) fileSystemOperations.delete { delete(dir) }
+    }
+
     private fun validateOptions() {
         val prohibitedOptions = mapOf(
-                "-classpath" to "Leads to resource leaks. Use the 'xjc', 'xjcBindings' or 'xjcPlugins' configuration instead",
-                "-d" to "Configured through the 'outputJavaDir' property",
-                "-b" to "Configured through the 'bindingFiles' property",
-                "-p" to "Configured through the 'defaultPackage' property",
-                "-episode" to "Configured through the 'generateEpisode' property",
-                "-mark-generated" to "Configured through the 'markGenerated' property"
+            "-classpath" to "Leads to resource leaks. Use the 'xjc', 'xjcBindings' or 'xjcPlugins' configuration instead",
+            "-d" to "Configured through the 'outputJavaDir' property",
+            "-b" to "Configured through the 'bindingFiles' property",
+            "-p" to "Configured through the 'defaultPackage' property",
+            "-episode" to "Configured through the 'generateEpisode' property",
+            "-mark-generated" to "Configured through the 'markGenerated' property"
         )
         options.get().forEach { option ->
             if (prohibitedOptions.containsKey(option)) {
@@ -184,10 +193,10 @@ open class XjcTask @Inject constructor(
                     logger.warn("No episodes (sun-jaxb.episode) found in bind jar file ${bindJarFile.name}")
                 } else {
                     episodeFiles.first().copyTo(
-                            tmpBindFiles
-                                    .file(bindJarFile.name.removeSuffix(".jar") + ".episode")
-                                    .get()
-                                    .asFile
+                        tmpBindFilesDir
+                            .file(bindJarFile.name.removeSuffix(".jar") + ".episode")
+                            .get()
+                            .asFile
                     )
                 }
             } else {

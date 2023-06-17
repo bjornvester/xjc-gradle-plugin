@@ -4,7 +4,6 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.file.FileCollection
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME
 import org.gradle.api.tasks.SourceSetContainer
@@ -53,7 +52,7 @@ class XjcPlugin : Plugin<Project> {
             }))
         }
 
-        val defaultTask = addXjcTask(XJC_TASK_NAME, project, extension, null, null)
+        val defaultTask = addXjcTask(XJC_TASK_NAME, project, extension)
 
         extension.groups.all {
             if (GradleVersion.current() < GradleVersion.version(MINIMUM_GRADLE_VERSION_GROUPING)) {
@@ -64,14 +63,16 @@ class XjcPlugin : Plugin<Project> {
                 enabled = false
             }
 
-            addXjcTask(XJC_TASK_NAME + name.replaceFirstChar(Char::titlecase), project, this, extension.xsdFiles, extension.bindingFiles)
+            addXjcTask(XJC_TASK_NAME + name.replaceFirstChar(Char::titlecase), project, this)
         }
     }
 
-    private fun addXjcTask(name: String, project: Project, group: XjcExtensionGroup, baseXsdFiles: FileCollection?, baseBindingFiles: FileCollection?): TaskProvider<XjcTask> {
+    private fun addXjcTask(name: String, project: Project, group: XjcExtensionGroup): TaskProvider<XjcTask> {
         val task = project.tasks.register(name, XjcTask::class.java) {
             defaultPackage.convention(group.defaultPackage)
             xsdDir.convention(group.xsdDir)
+            includes.convention(group.includes)
+            excludes.convention(group.excludes)
             generateEpisode.convention(group.generateEpisode)
             options.convention(group.options)
             markGenerated.convention(group.markGenerated)
@@ -80,19 +81,7 @@ class XjcPlugin : Plugin<Project> {
             xjcConfiguration.from(project.configurations.named(XJC_CONFIGURATION_NAME))
             xjcBindConfiguration.from(project.configurations.named(XJC_BIND_CONFIGURATION_NAME))
             xjcPluginsConfiguration.from(project.configurations.named(XJC_PLUGINS_CONFIGURATION_NAME))
-
-            // TODO: Once xsdFiles and bindingFiles are a ConfigurableFileCollection, just use them as a convention
-            xsdFiles = if (baseXsdFiles == null || !group.xsdFiles.isEmpty) {
-                group.xsdFiles
-            } else {
-                baseXsdFiles
-            }
-
-            bindingFiles = if (baseBindingFiles == null || !group.bindingFiles.isEmpty) {
-                group.bindingFiles
-            } else {
-                baseBindingFiles
-            }
+            bindingFiles.from(group.bindingFiles)
 
             val sourceSets = project.properties["sourceSets"] as SourceSetContainer
 
