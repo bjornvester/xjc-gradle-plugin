@@ -1,7 +1,6 @@
 package com.github.bjornvester.xjc
 
 import org.gradle.api.NamedDomainObjectContainer
-import org.gradle.api.file.FileCollection
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
 import javax.inject.Inject
@@ -12,14 +11,14 @@ open class XjcExtension @Inject constructor(objects: ObjectFactory, layout: Proj
     val addCompilationDependencies = objects.property(Boolean::class.java).convention(true)
 
     override val name = "Defaults"
-    override val xsdDir = objects.directoryProperty().convention(layout.projectDirectory.dir("src/main/resources"))
+    final override val xsdDir = objects.directoryProperty().convention(layout.projectDirectory.dir("src/main/resources"))
     override val includes = objects.listProperty(String::class.java).convention(listOf("**/*.xsd"))
     override val excludes = objects.listProperty(String::class.java)
     override val outputJavaDir = objects.directoryProperty().convention(layout.buildDirectory.dir("generated/sources/xjc/java"))
     override val outputResourcesDir = objects.directoryProperty().convention(layout.buildDirectory.dir("generated/sources/xjc/resources"))
     override val defaultPackage = objects.property(String::class.java)
     override val generateEpisode = objects.property(Boolean::class.java).convention(false)
-    override var bindingFiles: FileCollection = xsdDir.asFileTree.matching { include("**/*.xjb") }
+    override val bindingFiles = objects.fileCollection().from(xsdDir.asFileTree.matching { include("**/*.xjb") })
     override val options = objects.listProperty(String::class.java)
     override val markGenerated = objects.property(Boolean::class.java).convention(false)
 
@@ -34,7 +33,7 @@ open class XjcExtension @Inject constructor(objects: ObjectFactory, layout: Proj
             outputResourcesDir.convention(layout.buildDirectory.dir("generated/sources/xjc-$name/resources"))
             defaultPackage.convention(this@XjcExtension.defaultPackage)
             generateEpisode.convention(this@XjcExtension.generateEpisode)
-            bindingFiles = this@XjcExtension.bindingFiles
+            bindingFiles.setFrom(this@XjcExtension.bindingFiles)
             options.convention(this@XjcExtension.options)
             markGenerated.convention(this@XjcExtension.markGenerated)
         }

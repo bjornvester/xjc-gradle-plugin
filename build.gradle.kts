@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.github.bjornvester"
-version = "1.8.0"
+version = "1.8.1"
 
 repositories {
     mavenCentral()
@@ -45,9 +45,7 @@ gradlePlugin {
             displayName = "Gradle XJC plugin"
             tags.set(listOf("xjc", "jaxb", "xsd"))
             description = """Changes:
-                |- Fixed an issue with specifying binding files.
-                |- Fixed an issue with missing logging output from XJC.
-                |- Removed the xsdFiles configuration and added an includes and excludes configuration.""".trimMargin()
+                |- Fixed another issue with custom location of binding files.""".trimMargin()
         }
     }
 }

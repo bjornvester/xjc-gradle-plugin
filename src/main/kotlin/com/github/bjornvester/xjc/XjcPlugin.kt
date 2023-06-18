@@ -81,7 +81,7 @@ class XjcPlugin : Plugin<Project> {
             xjcConfiguration.from(project.configurations.named(XJC_CONFIGURATION_NAME))
             xjcBindConfiguration.from(project.configurations.named(XJC_BIND_CONFIGURATION_NAME))
             xjcPluginsConfiguration.from(project.configurations.named(XJC_PLUGINS_CONFIGURATION_NAME))
-            bindingFiles = group.bindingFiles
+            bindingFiles.setFrom(group.bindingFiles)
 
             val sourceSets = project.properties["sourceSets"] as SourceSetContainer
 

@@ -25,7 +25,7 @@ e.g. like this:
 
 ```kotlin
 plugins {
-    id("com.github.bjornvester.xjc") version "1.8.0"
+    id("com.github.bjornvester.xjc") version "1.8.1"
 }
 ```
 
@@ -44,7 +44,7 @@ Here is a list of all available properties:
 | xsdDir                     | DirectoryProperty          | "$projectDir/src<br>/main/resources"                   | The directory holding the xsd files to compile.                                                                                                                                                               |
 | includes                   | ListProperty\<String>      | \[empty\]                                              | An optional include pattern for the files in the xsdDir property                                                                                                                                              |
 | excludes                   | ListProperty\<String>      | \[empty\]                                              | An optional exclude pattern for the files in the xsdDir property                                                                                                                                              |
-| bindingFiles               | FileCollection             | xsdDir.asFileTree.matching<br> { include("**/*.xjb") } | The binding files to use in the schema compiler                                                                                                                                                               |
+| bindingFiles               | ConfigurableFileCollection | xsdDir.asFileTree.matching<br> { include("**/*.xjb") } | The binding files to use in the schema compiler                                                                                                                                                               |
 | outputJavaDir              | DirectoryProperty          | "$buildDir/generated<br>/sources/xjc/java"             | The output directory for the generated Java sources.<br>Note that it will be deleted when running XJC.                                                                                                        |
 | outputResourcesDir         | DirectoryProperty          | "$buildDir/generated<br>/sources/xjc/resources"        | The output directory for the generated resources (if any).<br>Note that it will be deleted when running XJC.                                                                                                  |
 | useJakarta                 | Provider\<Boolean>         | true                                                   | Set to use the `jakarta` namespace. If false, uses the `javax` namespace. This value determines the default version of XJC and the JAXB binding provider.                                                     |
@@ -175,7 +175,7 @@ You can also provide your own binding files (or custom episode files) through th
 
 ```kotlin
 xjc {
-    bindingFiles = layout.projectDirectory.dir("src/main/xjb").asFileTree.matching { include("**/*.xjb") } // Files with an .xjb extension in the "src/main/xjb" directory
+    bindingFiles.setFrom(layout.projectDirectory.dir("src/main/xjb").asFileTree.matching { include("**/*.xjb") }) // Files with an .xjb extension in the "src/main/xjb" directory
 }
 ```
 
@@ -243,7 +243,7 @@ Lastly, for both `jakarta` and `javax`, configure the plugin to use the binding 
 
 ```kotlin
 xjc {
-    bindingFiles = layout.projectDirectory.dir("src/main/xjb").asFileTree.matching { include("**/*.xjb") }
+    bindingFiles.setFrom(layout.projectDirectory.dir("src/main/xjb").asFileTree.matching { include("**/*.xjb") })
 }
 ```
 
