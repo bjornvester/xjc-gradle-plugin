@@ -9,7 +9,7 @@ repositories {
 
 xjc {
     xsdDir.set(layout.projectDirectory.dir("src/main/xsd"))
-    bindingFiles.from(layout.projectDirectory.dir("src/main/xjb").asFileTree.matching { include("**/*.xjb") })
+    bindingFiles = layout.projectDirectory.dir("src/main/xjb").asFileTree.matching { include("**/*.xjb") }
 }
 
 dependencies {

@@ -3,6 +3,7 @@ package com.github.bjornvester.xjc
 import com.github.bjornvester.xjc.XjcPlugin.Companion.XJC_EXTENSION_NAME
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
+import org.gradle.api.file.ArchiveOperations
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
@@ -18,8 +19,9 @@ import javax.inject.Inject
 open class XjcTask @Inject constructor(
     private val workerExecutor: WorkerExecutor,
     private val objectFactory: ObjectFactory,
+    private val archiveOperations: ArchiveOperations,
+    private val fileSystemOperations: FileSystemOperations,
     projectLayout: ProjectLayout,
-    private val fileSystemOperations: FileSystemOperations
 ) : DefaultTask() {
     @get:Optional
     @get:Input
@@ -53,7 +55,7 @@ open class XjcTask @Inject constructor(
     @Optional
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
-    val bindingFiles = objectFactory.fileCollection().from(getXjcExtension().bindingFiles)
+    var bindingFiles = getXjcExtension().bindingFiles
 
     @get:Input
     val options: ListProperty<String> = objectFactory.listProperty(String::class.java).convention(getXjcExtension().options)
@@ -188,7 +190,7 @@ open class XjcTask @Inject constructor(
 
         xjcBindConfiguration.forEach { bindJarFile ->
             if (bindJarFile.extension == "jar") {
-                val episodeFiles = objectFactory.fileTree().from(bindJarFile).filter { it.name == "sun-jaxb.episode" }.files
+                val episodeFiles = archiveOperations.zipTree(bindJarFile).matching { include("**/sun-jaxb.episode") }.files
                 if (episodeFiles.isEmpty()) {
                     logger.warn("No episodes (sun-jaxb.episode) found in bind jar file ${bindJarFile.name}")
                 } else {

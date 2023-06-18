@@ -8,6 +8,8 @@ repositories {
 }
 
 dependencies {
+    xjcBindings(project(":test-producer-3x"))
+
     implementation(project(":test-producer-3x"))
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.1")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.1")
