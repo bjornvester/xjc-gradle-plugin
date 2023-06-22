@@ -11,3 +11,7 @@ xjc {
     generateEpisode.set(true)
     includes.set(listOf("MySchemaWithFunnyChar.xsd"))
 }
+
+java {
+    withSourcesJar()
+}

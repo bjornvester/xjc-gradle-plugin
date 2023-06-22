@@ -82,21 +82,12 @@ class XjcPlugin : Plugin<Project> {
             xjcBindConfiguration.from(project.configurations.named(XJC_BIND_CONFIGURATION_NAME))
             xjcPluginsConfiguration.from(project.configurations.named(XJC_PLUGINS_CONFIGURATION_NAME))
             bindingFiles.setFrom(group.bindingFiles)
-
-            val sourceSets = project.properties["sourceSets"] as SourceSetContainer
-
-            sourceSets.named(MAIN_SOURCE_SET_NAME) {
-                java.srcDir(outputJavaDir)
-                resources.srcDir(outputResourcesDir)
-            }
         }
 
-        project.tasks.named(JavaPlugin.PROCESS_RESOURCES_TASK_NAME) {
-            dependsOn(task)
-        }
-
-        project.tasks.named(JavaPlugin.COMPILE_JAVA_TASK_NAME) {
-            dependsOn(task)
+        val sourceSets = project.properties["sourceSets"] as SourceSetContainer
+        sourceSets.named(MAIN_SOURCE_SET_NAME) {
+            java.srcDir(task.map { it.outputJavaDir })
+            resources.srcDir(task.map { it.outputResourcesDir })
         }
 
         return task
