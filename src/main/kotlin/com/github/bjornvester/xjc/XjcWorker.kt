@@ -7,7 +7,9 @@ import org.gradle.api.GradleException
 import org.gradle.workers.WorkAction
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.PrintStream
 
 abstract class XjcWorker : WorkAction<XjcWorkerParams> {
     private val logger: Logger = LoggerFactory.getLogger(XjcWorker::class.java)
@@ -65,7 +67,14 @@ abstract class XjcWorker : WorkAction<XjcWorkerParams> {
         model.generateCode(options, XjcErrorReceiver())
                 ?: throw GradleException("Could not generate code from the XJC model")
 
-        jCodeModel.build(parameters.outputJavaDir, parameters.outputResourceDir)
+        if (options.quiet) {
+            // Provide a printstream but never read its contents
+            PrintStream(ByteArrayOutputStream()).use {
+                jCodeModel.build(parameters.outputJavaDir, parameters.outputResourceDir, it)
+            }
+        } else {
+            jCodeModel.build(parameters.outputJavaDir, parameters.outputResourceDir)
+        }
 
         fixGeneratedEpisodeFile()
     }
