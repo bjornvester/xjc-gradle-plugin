@@ -213,7 +213,7 @@ If you like to use this one, include it as a dependency:
 
 ```kotlin
 dependencies {
-    implementation("io.github.threeten-jaxb:threeten-jaxb-core:2.1.0") // This version is for Jakarta
+    implementation("io.github.threeten-jaxb:threeten-jaxb-core:2.2.0") // This version is for Jakarta
 }
 ```
 
@@ -223,23 +223,23 @@ Then create a binding file with content with the types you like to map:
 
 <bindings xmlns="https://jakarta.ee/xml/ns/jaxb"
           xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
-          jaxb:version="3.0"
-          jaxb:extensionBindingPrefixes="xjc">
-    <globalBindings>
-        <xjc:javaType name="java.time.LocalDate" xmlType="xs:date" adapter="io.github.threetenjaxb.core.LocalDateXmlAdapter"/>
-        <xjc:javaType name="java.time.LocalDateTime" xmlType="xs:dateTime" adapter="io.github.threetenjaxb.core.LocalDateTimeXmlAdapter"/>
-        <xjc:javaType name="java.time.YearMonth" xmlType="xs:gYearMonth" adapter="io.github.threetenjaxb.core.YearMonthXmlAdapter"/>
-        <xjc:javaType name="java.time.Duration" xmlType="xs:duration" adapter="io.github.threetenjaxb.core.DurationXmlAdapter"/>
-        <xjc:javaType name="java.time.OffsetDate" xmlType="xs:date" adapter="io.github.threetenjaxb.core.OffsetTimeXmlAdapter"/>
-        <xjc:javaType name="java.time.OffsetDateTime" xmlType="xs:dateTime" adapter="io.github.threetenjaxb.core.OffsetDateTimeXmlAdapter"/>
-    </globalBindings>
+          version="3.0"
+          extensionBindingPrefixes="xjc">
+<globalBindings>
+    <xjc:javaType name="java.time.LocalDate" xmlType="xs:date" adapter="io.github.threetenjaxb.core.LocalDateXmlAdapter"/>
+    <xjc:javaType name="java.time.LocalDateTime" xmlType="xs:dateTime" adapter="io.github.threetenjaxb.core.LocalDateTimeXmlAdapter"/>
+    <xjc:javaType name="java.time.YearMonth" xmlType="xs:gYearMonth" adapter="io.github.threetenjaxb.core.YearMonthXmlAdapter"/>
+    <xjc:javaType name="java.time.Duration" xmlType="xs:duration" adapter="io.github.threetenjaxb.core.DurationXmlAdapter"/>
+    <xjc:javaType name="java.time.OffsetTime" xmlType="xs:date" adapter="io.github.threetenjaxb.core.OffsetTimeXmlAdapter"/>
+    <xjc:javaType name="java.time.OffsetDateTime" xmlType="xs:dateTime" adapter="io.github.threetenjaxb.core.OffsetDateTimeXmlAdapter"/>
+</globalBindings>
 </bindings>
 ```
 
 The above configuration is for `jakarta`.
 For `javax`, use version 1.2.0 and the binding attributes to `xmlns="http://java.sun.com/xml/ns/jaxb" version="2.1"`.
 
-Lastly, for both `jakarta` and `javax`, configure the plugin to use the binding file (in this case it is called `src/main/bindings/bindings.xml`):
+Lastly, for both `jakarta` and `javax`, configure the plugin to use the binding file (in this case it is called `src/main/xjb/bindings.xml`):
 
 ```kotlin
 xjc {
