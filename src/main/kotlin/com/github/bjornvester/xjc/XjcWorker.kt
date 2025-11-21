@@ -1,6 +1,7 @@
 package com.github.bjornvester.xjc
 
 import com.sun.codemodel.JCodeModel
+import com.sun.tools.xjc.BadCommandLineException
 import com.sun.tools.xjc.ModelLoader
 import com.sun.tools.xjc.Options
 import org.gradle.api.GradleException
@@ -14,7 +15,9 @@ abstract class XjcWorker : WorkAction<XjcWorkerParams> {
 
     override fun execute() {
         val options = Options()
-        options.disableXmlSecurity = true // Avoids SAXNotRecognizedExceptions in certain places (though not everywhere) - see the note in XjcTask for additional information on this
+        // The disableXmlSecurity option below avoids SAXNotRecognizedExceptions in certain places (though not everywhere)
+        // - see the note in XjcTask for additional information on this
+        options.disableXmlSecurity = true
         configureGeneratedEpisodeFile(options)
 
         if (parameters.bindFiles.isNotEmpty()) {
@@ -44,30 +47,54 @@ abstract class XjcWorker : WorkAction<XjcWorkerParams> {
             })
         }
 
-        if (parameters.options.isNotEmpty()) {
-            logger.info("Using options: ${parameters.options}")
-            // The following may load additional plugins
-            val optionsArray = parameters.options.toTypedArray()
-            parameters.options.forEachIndexed { i, _ ->
-                options.parseArgument(optionsArray, i)
-            }
+        if (logger.isDebugEnabled) {
+            options.debugMode = true
         }
 
-        if (options.activePlugins.isEmpty() || parameters.verbose) {
+        if (parameters.options.isNotEmpty() || parameters.verbose) {
+            logger.info("Using options: ${parameters.options}")
+            setCustomOptions(options)
+        }
+
+        if (options.activePlugins.isNotEmpty() || parameters.verbose) {
             logger.info("Active plugins: ${options.activePlugins.map { it.javaClass.name }}")
         }
 
         val jCodeModel = JCodeModel()
 
         val model = ModelLoader.load(options, jCodeModel, XjcErrorReceiver())
-                ?: throw GradleException("Could not load the XJC model")
+            ?: throw GradleException("Could not load the XJC model")
 
         model.generateCode(options, XjcErrorReceiver())
-                ?: throw GradleException("Could not generate code from the XJC model")
+            ?: throw GradleException("Could not generate code from the XJC model")
 
         jCodeModel.build(parameters.outputJavaDir, parameters.outputResourceDir)
 
         fixGeneratedEpisodeFile()
+    }
+
+    private fun setCustomOptions(options: Options) {
+        val optionsArray = parameters.options.toTypedArray()
+        var i = 0
+
+        while (i < optionsArray.size) {
+            val arg = optionsArray[i]
+
+            if (arg.isEmpty()) {
+                throw BadCommandLineException("Empty value found in option with index $i")
+            } else if (!arg.startsWith('-')) {
+                throw BadCommandLineException("Option must start with '-': $arg")
+            }
+
+            // The following may load additional plugins
+            val consumed = options.parseArgument(optionsArray, i)
+
+            if (consumed == 0) {
+                throw BadCommandLineException("Unrecognized option: $arg")
+            }
+
+            i += consumed
+        }
     }
 
     private fun configureGeneratedEpisodeFile(options: Options) {
@@ -82,9 +109,9 @@ abstract class XjcWorker : WorkAction<XjcWorkerParams> {
             // Strip the first comment as it contains a timestamp that messes with the build cache
             val episodeFile = File(parameters.episodeFilepath)
             episodeFile.writeText(
-                    episodeFile.readText().replaceFirst(
-                            Regex(" *<!--.+?-->", RegexOption.DOT_MATCHES_ALL), ""
-                    )
+                episodeFile.readText().replaceFirst(
+                    Regex(" *<!--.+?-->", RegexOption.DOT_MATCHES_ALL), ""
+                )
             )
         }
     }

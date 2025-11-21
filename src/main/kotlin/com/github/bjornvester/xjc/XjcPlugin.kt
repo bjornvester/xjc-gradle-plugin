@@ -12,8 +12,7 @@ import org.gradle.util.GradleVersion
 
 class XjcPlugin : Plugin<Project> {
     companion object {
-        const val MINIMUM_GRADLE_VERSION = "6.7"
-        const val MINIMUM_GRADLE_VERSION_GROUPING = "7.0"
+        const val MINIMUM_GRADLE_VERSION = "7.3"
         const val PLUGIN_ID = "com.github.bjornvester.xjc"
         const val XJC_TASK_NAME = "xjc"
         const val XJC_EXTENSION_NAME = "xjc"
@@ -41,7 +40,7 @@ class XjcPlugin : Plugin<Project> {
             dependencies.addAllLater(project.objects.listProperty(Dependency::class.java).convention(extension.addCompilationDependencies.map {
                 val deps = listOf<Dependency>().toMutableList()
                 if (it) {
-                    val xmlBindApiVersion = if (extension.useJakarta.get()) "3.0.1" else "2.3.3"
+                    val xmlBindApiVersion = if (extension.useJakarta.get()) "4.0.4" else "2.3.3"
                     deps.add(project.dependencies.create("jakarta.xml.bind:jakarta.xml.bind-api:$xmlBindApiVersion"))
                     if (extension.markGenerated.get()) {
                         val annotationsApiVersion = if (extension.useJakarta.get()) "2.1.1" else "1.3.5"
@@ -55,10 +54,6 @@ class XjcPlugin : Plugin<Project> {
         val defaultTask = addXjcTask(XJC_TASK_NAME, project, extension)
 
         extension.groups.all {
-            if (GradleVersion.current() < GradleVersion.version(MINIMUM_GRADLE_VERSION_GROUPING)) {
-                throw UnsupportedOperationException("Plugin $PLUGIN_ID requires at least Gradle $MINIMUM_GRADLE_VERSION_GROUPING when using the 'groups' property, but you are using ${GradleVersion.current().version}")
-            }
-
             defaultTask.configure {
                 enabled = false
             }

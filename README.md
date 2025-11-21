@@ -3,31 +3,38 @@
 
 # xjc-gradle-plugin
 
-A Gradle plugin for running the XJC binding compiler to generate Java source code from XML schemas (xsd files) using JAXB.
+A Gradle plugin for running the XJC binding compiler to generate Java source code from XML schemas (xsd files) using
+JAXB.
 
 ## Requirements and features
 
-* The plugin requires Gradle version 6.7 or later.
-* It has been tested with Java 8 and Java 17.
-* It has been tested with XJC version 2.3.3 (using the `javax` namespace) and 3.0.2 (using the `jakarta` namespace). Defaults to the jakarta variant.
-* It supports the Gradle build cache (enabled by setting "org.gradle.caching=true" in your gradle.properties file).
-* It supports the Gradle configuration cache (enabled by setting `org.gradle.configuration-cache=true` in your gradle.properties file").
-* It supports project relocation for the build cache (e.g. you move your project to a new path, or make a new copy/clone of it).
-  This is especially useful in a CI context, where you might clone PRs and/or branches for a repository in their own locations.
-* It supports parallel execution (enabled with "org.gradle.parallel=true", possibly along with "org.gradle.priority=low", in your gradle.properties file).
-* It supports _most_, but not all (yet), of the functionality provided by XJC. Check the configuration section and the road map section to get an idea of what
-  is possible.
+* The plugin requires Gradle version 7.3 or later. Last build tested with Gradle 7.3, 8.14.1 and 9.2.1.
+* It has been tested with XJC version 2.3 (using the `javax` namespace) and 4.0 (using the `jakarta` namespace).
+  Defaults to the jakarta variant.
+* It supports the Gradle build cache (enabled by setting `org.gradle.caching=true` in your gradle.properties file).
+* It supports the Gradle configuration cache (enabled by setting `org.gradle.configuration-cache=true` in your
+  gradle.properties file).
+* It supports project relocation for the build cache (e.g. you move your project to a new path, or make a new copy/clone
+  of it).
+  This is especially useful in a CI context, where you might clone PRs and/or branches for a repository in their own
+  locations.
+* It supports parallel execution (enabled with `org.gradle.parallel=true` in your gradle.properties file).
 
 ## Configuration
 
-Apply the plugin ID "com.github.bjornvester.xjc" as documented in the [Gradle Plugin portal page](https://plugins.gradle.org/plugin/com.github.bjornvester.xjc),
+Apply the plugin ID "com.github.bjornvester.xjc" as documented in
+the [Gradle Plugin portal page](https://plugins.gradle.org/plugin/com.github.bjornvester.xjc),
 e.g. like this:
 
 ```kotlin
 plugins {
-    id("com.github.bjornvester.xjc") version "1.8.1"
+    id("com.github.bjornvester.xjc") version "1.9.0"
 }
 ```
+
+This will by default generate source code and configure dependencies for JAXB 4.0 (Jakarta EE 10).
+This version requires Java 11 and is also used by Spring Boot 3.x and 4.0.
+See below for how to configure it for JAXB 3.0 (requiring Java 8) or 2.1 (using the `javax` namespace)
 
 You can configure the plugin using the "xjc" extension like this:
 
@@ -48,7 +55,7 @@ Here is a list of all available properties:
 | outputJavaDir              | DirectoryProperty          | "$buildDir/generated<br>/sources/xjc/java"             | The output directory for the generated Java sources.<br>Note that it will be deleted when running XJC.                                                                                                        |
 | outputResourcesDir         | DirectoryProperty          | "$buildDir/generated<br>/sources/xjc/resources"        | The output directory for the generated resources (if any).<br>Note that it will be deleted when running XJC.                                                                                                  |
 | useJakarta                 | Provider\<Boolean>         | true                                                   | Set to use the `jakarta` namespace. If false, uses the `javax` namespace. This value determines the default version of XJC and the JAXB binding provider.                                                     |
-| xjcVersion                 | Provider\<String>          | "3.0.2" for jakarta /<br> "2.3.8" for javax            | The version of XJC to use.                                                                                                                                                                                    |
+| xjcVersion                 | Provider\<String>          | "4.0.6" for jakarta /<br> "2.3.9" for javax            | The version of XJC to use.                                                                                                                                                                                    |
 | defaultPackage             | Provider\<String>          | \[not set\]                                            | The default package for the generated Java classes.<br>If empty, XJC will infer it from the namespace.                                                                                                        |
 | generateEpisode            | Provider\<Boolean>         | false                                                  | If true, generates an Episode file for the generated Java classes.                                                                                                                                            |
 | markGenerated              | Provider\<Boolean>         | false                                                  | If true, marks the generated code with the annotation `@javax.annotation.Generated`.                                                                                                                          |
@@ -69,24 +76,34 @@ xjc {
 
 All referenced resources must be located under this directory, or up-to-date checking might not work properly.
 
-If you don't want to compile all schemas in the folder, you can specify which ones through the `includes` and `excludes` properties.
+If you don't want to compile all schemas in the folder, you can specify which ones through the `includes` and `excludes`
+properties.
 These are both Ant patterns.
-Here is an example where all schema files are referenced relative to the xsdDir property:
+For instance, to compiles xsd files in a "types" folder relative to the xsdDir property:
 
 ```kotlin
 xjc {
-    xsdFiles = project.files(
-        xsdDir.file("MySchema1.xsd"),
-        xsdDir.file("MySchema2.xsd")
-    )
-    // Or
-    xsdFiles = xsdDir.asFileTree.matching { include("subfolder/**/*.xsd") }
+    includes = ["types/*.xsd"]
+}
+```
+
+#### WSDL files
+
+It is possible to generate sources for schemas inside WSDL files.
+To do this, include them as a pattern (as it defaults to only `.xsd` files).
+You will likely get a warning from XJC as this, is at the time of writing, an experimental feature.
+This warning can be disabled with the `-wsdl` option:
+
+```kotlin
+xjc {
+    includes.set(listOf("*.wsdl"))
+    options.add("-wsdl")
 }
 ```
 
 ### Customizing the build dependencies
 
-By default, it will use XJC version 3.0.2 to compile the schemas.
+By default, it will use XJC version 4.0.6 to compile the schemas.
 You can set another version through the xjcVersion property like this:
 
 ```kotlin
@@ -96,28 +113,54 @@ xjc {
 }
 ```
 
-If you specify a version in the 2.x range, which generates source code with the javax namespace, you should also set the `useJakarta` configuration to false.
+If you specify a version in the 2.x range, which generates source code with the javax namespace, you should also set the
+`useJakarta` configuration to false.
 Note that setting `useJakarta` to false, it will by default select an appropriate version in the 2.x range.
 
-By applying the plugin, it will register the Java plugin as well if it isn't there already (so the generated source code can be compiled).
-It will also by default add the dependency `jakarta.xml.bind:jakarta.xml.bind-api` to your implementation configuration, as this is needed to compile the source
+By applying the plugin, it will register the Java plugin as well if it isn't there already (so the generated source code
+can be compiled).
+It will also by default add the dependency `jakarta.xml.bind:jakarta.xml.bind-api` to your implementation configuration,
+as this is needed to compile the source
 code.
-If your project is going to be deployed on a Java/Jakarta EE application server, you may want to exclude this dependency from your runtime and instead use
+If your project is going to be deployed on a Java/Jakarta EE application server, you may want to exclude this dependency
+from your runtime and instead use
 whatever your application server is providing.
 This can be done by setting the configuration `addCompilationDependencies` to false.
 
+You can also set it to use XJC/JAXB 3.x as well.
+This is also a Jakarta version.
+Note that there is a resource leak in XJC version 3, so I recommend to use version 4 as the tool for generating sources
+even if you set version 3 as the dependencies.
+
+```kotlin
+xjc {
+    // xjcVersion.set("3.0.2") // Not set as we want to use the default version 4.x for code generation even for JAXB 3.x
+    addCompilationDependencies.set(false) // Because we want to manually configure dependencies for JAXB 3.x
+}
+
+dependencies {
+    implementation("jakarta.xml.bind:jakarta.xml.bind-api:3.0.1")
+}
+```
+
 ### Choosing the file encoding
 
-If your schemas contain characters that do not match your default platform encoding (on western versions of Windows, this will probably be CP-1252),
-set the encoding through the file.encoding property for Gradle.
-For example, to use UTF-8, put this in your gradle.property file:
+If your schemas contain characters that either do not match your default platform encoding (if using Java 17 or
+earlier), or is not using UTF-8 (if using Java 18 or later), you should set the encoding in Gradle.
+For instance, on western versions of Windows, the platform encoding is probably CP-1252, and on Java 17, this is what
+the JVM defaults to.
+
+To set a different encoding, use the `file.encoding` property for Gradle.
+For example, to use UTF-8 (again only for Java 17 or earlier), put this in your `gradle.property` file:
 
 ```properties
 org.gradle.jvmargs=-Dfile.encoding=UTF-8
 ```
 
-If you are on a POSIX operating system (e.g. Linux), you may in addition to this need to set your operating system locale to one that supports your encoding.
-Otherwise, Java (and therefore also Gradle and XJC) may not be able to create files with names outside of what your default locale supports.
+If you are on a POSIX operating system (e.g. Linux), you may in addition to this need to set your operating system
+locale to one that supports your encoding.
+Otherwise, Java (and therefore also Gradle and XJC) may not be able to create files with names outside of what your
+default locale supports.
 Especially some Docker images, like the Java ECR images from AWS, are by default set to a locale supporting ASCII only.
 If this is the case for you, and you want to use UTF-8, you could export an environment variable like this:
 
@@ -127,7 +170,8 @@ export LANG=C.UTF-8
 
 ### Enabling the use of the @Generated annotation
 
-If you like to have the generated source code marked with the `@javax.annotation.Generated` annotation, set the `markGenerated` property to true like this:
+If you like to have the generated source code marked with the `@javax.annotation.Generated` annotation, set the
+`markGenerated` property to true like this:
 
 ```kotlin
 xjc {
@@ -136,11 +180,13 @@ xjc {
 ``` 
 
 Note that while this annotation is found in the Java 8 SDK, it is not present in Java 9 and later.
-(However, there is a `@javax.annotation.processing.Generated` annotation, notice the `processing` sub-package, but this is not yet supported by this plugin.)
+(However, there is a `@javax.annotation.processing.Generated` annotation, notice the `processing` sub-package, but this
+is not yet supported by this plugin.)
 
 ### Generating episode files
 
-XJC can generate an episode file, which is basically an extended binding file that specifies how the schema types are associated with the generated Java
+XJC can generate an episode file, which is basically an extended binding file that specifies how the schema types are
+associated with the generated Java
 classes.
 
 You can enable the generation using the generateEpisode property like this:
@@ -155,12 +201,14 @@ The file will be generated at META-INF/sun-jaxb.episode and added as a resource 
 
 ### Consuming episode files
 
-XJC can consume the episode files so that it is possible to compile java classes from a schema in one project, and consume it in XJC generators in other
+XJC can consume the episode files so that it is possible to compile java classes from a schema in one project, and
+consume it in XJC generators in other
 projects, so you don't have to compile the same schemas multiple times.
 To do this, you need to add the jar file to the configuration named "xjcBindings".
 This is done using normal Gradle dependency management.
 
-For multi-projects, assuming the episode file is generated in a project called "test-producer", you can do this like this:
+For multi-projects, assuming the episode file is generated in a project called "test-producer", you can do this like
+this:
 
 ```kotlin
 dependencies {
@@ -179,12 +227,38 @@ xjc {
 }
 ```
 
+### Setting custom options
+
+The `xjc` extension does not cover all possible options for XJC.
+You may also need to pass options to a third-party plugin.
+
+To set a custom option that is passed directly to XJC, use the `xjc.options` property list like this:
+
+```kotlin
+xjc {
+    options.add("-npa")
+}
+```
+
+Options that are managed by the extension are prohibited to be set directly like this.
+
+The XJC tool itself is poorly documented.
+You can find documentation on options for an older version of the
+tool [here](https://javaee.github.io/jaxb-v2/doc/user-guide/ch04.html)
+
+As of XJC 4.0, the options are mostly the same as the older version documented for Java 8.
+Some options are hidden though, likely because they are considered non-standard.
+You may want to have a look at
+the [source code](https://github.com/eclipse-ee4j/jaxb-ri/blob/EE8/jaxb-ri/xjc/src/main/java/com/sun/tools/xjc/Options.java)
+for the complete list (find the `parseArgument` method).
+
 ### Activating (third party) XJC plugins
 
 To use third party plugins, supply the relevant dependencies to the `xjcPlugins` configuration.
 Then set the plugin options through the `options` property.
 
-For example, to use the "Copyable" plugin from the [JAXB2 Basics](https://github.com/highsource/jaxb2-basics) project, configure the following:
+For example, to use the "Copyable" plugin from the [JAXB2 Basics](https://github.com/highsource/jaxb2-basics) project,
+configure the following:
 
 ```kotlin
 dependencies {
@@ -197,23 +271,29 @@ xjc {
 ```
 
 Note that the above plugin is only compatible with JAXB 2.x, at least at the time of this writing.
-There is a fork [here](https://github.com/patrodyne/hisrc-basicjaxb) that you may try for JAXB 3.x and the `jakarta` namespace.
+There is a fork [here](https://github.com/patrodyne/hisrc-basicjaxb) that you may try for JAXB 3.x and the `jakarta`
+namespace.
 
-If you have trouble activating a plugin and is unsure whether it has been registered, you can run Gradle with the --debug option.
-This will print additional information on what plugins were found, what their option names are, and what plugins were activated.
-Note that in order to activate a third-party plugin, you must always provide at least one option (and usually just one) from the plugin.
+If you have trouble activating a plugin and is unsure whether it has been registered, you can run Gradle with the
+--debug option.
+This will print additional information on what plugins were found, what their option names are, and what plugins were
+activated.
+Note that in order to activate a third-party plugin, you must always provide at least one option (and usually just one)
+from the plugin.
 
 ### Supporting Date/Time APIs introduced in Java 8
 
 By default, XJC will map date and time types to difficult-to-use Java types like XMLGregorianCalendar.
-If you like to use the newer Data/Time APIs from package java.time, you must use a mapper and write a custom binding file.
+If you like to use the newer Data/Time APIs from package java.time, you must use a mapper and write a custom binding
+file.
 
-An example of a mapper project is [threeten-jaxb](https://github.com/threeten-jaxb/threeten-jaxb), but there are others as well.
+An example of a mapper project is [threeten-jaxb](https://github.com/threeten-jaxb/threeten-jaxb), but there are others
+as well.
 If you like to use this one, include it as a dependency:
 
 ```kotlin
 dependencies {
-    implementation("io.github.threeten-jaxb:threeten-jaxb-core:2.1.0") // This version is for Jakarta
+    implementation("io.github.threeten-jaxb:threeten-jaxb-core:2.2.0") // This version is for Jakarta
 }
 ```
 
@@ -226,12 +306,18 @@ Then create a binding file with content with the types you like to map:
           jaxb:version="3.0"
           jaxb:extensionBindingPrefixes="xjc">
     <globalBindings>
-        <xjc:javaType name="java.time.LocalDate" xmlType="xs:date" adapter="io.github.threetenjaxb.core.LocalDateXmlAdapter"/>
-        <xjc:javaType name="java.time.LocalDateTime" xmlType="xs:dateTime" adapter="io.github.threetenjaxb.core.LocalDateTimeXmlAdapter"/>
-        <xjc:javaType name="java.time.YearMonth" xmlType="xs:gYearMonth" adapter="io.github.threetenjaxb.core.YearMonthXmlAdapter"/>
-        <xjc:javaType name="java.time.Duration" xmlType="xs:duration" adapter="io.github.threetenjaxb.core.DurationXmlAdapter"/>
-        <xjc:javaType name="java.time.OffsetDate" xmlType="xs:date" adapter="io.github.threetenjaxb.core.OffsetTimeXmlAdapter"/>
-        <xjc:javaType name="java.time.OffsetDateTime" xmlType="xs:dateTime" adapter="io.github.threetenjaxb.core.OffsetDateTimeXmlAdapter"/>
+        <xjc:javaType name="java.time.LocalDate" xmlType="xs:date"
+                      adapter="io.github.threetenjaxb.core.LocalDateXmlAdapter"/>
+        <xjc:javaType name="java.time.LocalDateTime" xmlType="xs:dateTime"
+                      adapter="io.github.threetenjaxb.core.LocalDateTimeXmlAdapter"/>
+        <xjc:javaType name="java.time.YearMonth" xmlType="xs:gYearMonth"
+                      adapter="io.github.threetenjaxb.core.YearMonthXmlAdapter"/>
+        <xjc:javaType name="java.time.Duration" xmlType="xs:duration"
+                      adapter="io.github.threetenjaxb.core.DurationXmlAdapter"/>
+        <xjc:javaType name="java.time.OffsetDate" xmlType="xs:date"
+                      adapter="io.github.threetenjaxb.core.OffsetTimeXmlAdapter"/>
+        <xjc:javaType name="java.time.OffsetDateTime" xmlType="xs:dateTime"
+                      adapter="io.github.threetenjaxb.core.OffsetDateTimeXmlAdapter"/>
     </globalBindings>
 </bindings>
 ```
@@ -239,7 +325,8 @@ Then create a binding file with content with the types you like to map:
 The above configuration is for `jakarta`.
 For `javax`, use version 1.2.0 and the binding attributes to `xmlns="http://java.sun.com/xml/ns/jaxb" version="2.1"`.
 
-Lastly, for both `jakarta` and `javax`, configure the plugin to use the binding file (in this case it is called `src/main/bindings/bindings.xml`):
+Lastly, for both `jakarta` and `javax`, configure the plugin to use the binding file (in this case it is called
+`src/main/bindings/bindings.xml`):
 
 ```kotlin
 xjc {
@@ -254,8 +341,10 @@ This makes no difference to XJC and you can choose whatever you like.
 
 _The grouping functionality described here requires Gradle 7.0 or higher_
 
-If you require building a subset of XSDs with different configurations (e.g. package names), you can use `group` property.
-Each group has the same configuration properties as otherwise, except for the XJC version as this can't be controlled individually.
+If you require building a subset of XSDs with different configurations (e.g. package names), you can use `group`
+property.
+Each group has the same configuration properties as otherwise, except for the XJC version as this can't be controlled
+individually.
 The configurations in the outermost block are considered defaults, and you can then override them in each group.
 
 Example:
@@ -267,18 +356,19 @@ xjc {
 
     groups {
         register("group1") {
-            includes.set(listOf("MySchemaWithFunnyChar.xsd"))
+            includes.set(listOf("mySchema.xsd"))
             defaultPackage.set("com.example.group1")
         }
         register("group2") {
-            includes.set(listOf("MySchemaWithFunnyChar.xsd"))
+            includes.set(listOf("myOtherSchema.xsd"))
             defaultPackage.set("com.example.group2")
         }
     }
 }
 ```
 
-Note that if you enable episode generation, XJC will generate multiple files (one for each group) but with the same name.
+Note that if you enable episode generation, XJC will generate multiple files (one for each group) but with the same
+name.
 You will have to merge these yourself.
 You will also not be able to reference between groups.
 If you require this, you should instead separate the build into individual projects.
@@ -289,13 +379,17 @@ Here are some of the features I like to implement at some point.
 
 * Support the "-npa" option in XJC, suppressing the generation of package level annotations.
 * Support for catalog files.
-* Support for schemas in wsdl files.
-* Support for optionally adding "if-exists" attributes to generated episode files to prevent failures on unreferenced schemas.
+* Support for optionally adding "if-exists" attributes to generated episode files to prevent failures on unreferenced
+  schemas.
 * Document how to register multiple XJC tasks yourself in the same project (for instance for testing only)
 
 You are welcome to create issues and PRs for anything else.
+However, while I am probably not dead, I am not very active, and it can take years between development runs :(
 
 ## Alternatives
 
-If you need additional functionality than what is provided here, you may want to try the one from [unbroken-dome](https://github.com/unbroken-dome/gradle-xjc-plugin).
-Just be aware that, at least at the time of this writing, the latest version is 2.0.0, which has some known issues with the jakarta dependencies and the Gradle configuration cache.
+If you need additional functionality than what is provided here, you may want to try the one
+from [unbroken-dome](https://github.com/unbroken-dome/gradle-xjc-plugin).
+Just be aware that, at least at the time of this writing, the latest version is 2.0.0, which has some known issues with
+the jakarta dependencies and the Gradle
+configuration cache.

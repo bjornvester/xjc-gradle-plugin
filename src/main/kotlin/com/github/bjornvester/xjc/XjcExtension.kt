@@ -7,7 +7,7 @@ import javax.inject.Inject
 
 open class XjcExtension @Inject constructor(objects: ObjectFactory, layout: ProjectLayout) : XjcExtensionGroup {
     val useJakarta = objects.property(Boolean::class.java).convention(true)
-    val xjcVersion = objects.property(String::class.java).convention(useJakarta.map { if (it) "3.0.2" else "2.3.8" })
+    val xjcVersion = objects.property(String::class.java).convention(useJakarta.map { if (it) "4.0.6" else "2.3.9" })
     val addCompilationDependencies = objects.property(Boolean::class.java).convention(true)
 
     override val name = "Defaults"

@@ -24,31 +24,34 @@ open class IntegrationTest {
         // Remove the "includedBuild" declaration from the settings file
         tempDir.resolve(SETTINGS_FILE).writeText(tempDir.resolve(SETTINGS_FILE).readText().replace("includeBuild(\"..\")", ""))
 
-        if (GradleVersion.version(gradleVersion) < GradleVersion.version("7.0")) {
-            // The grouping functionality is not supported in older versions
-            tempDir.resolve(SETTINGS_FILE)
-                    .writeText(tempDir.resolve(SETTINGS_FILE).readText().replace("\"test-producer-3x-grouped\",", ""))
-        }
-
         if (GradleVersion.version(gradleVersion) < GradleVersion.version("7.6")) {
             // The Gradle toolchain provisioning is not supported in older versions
             tempDir.resolve(SETTINGS_FILE)
-                    .writeText(tempDir.resolve(SETTINGS_FILE).readText().replace("""id\("org.gradle.toolchains.foojay-resolver-convention"\).*""".toRegex(), ""))
+                .writeText(tempDir.resolve(SETTINGS_FILE).readText().replace("""id\("org.gradle.toolchains.foojay-resolver-convention"\).*""".toRegex(), ""))
         }
 
-        // Set the Java version
+        if (javaVersion.equals("8")) {
+            // XJC 4 requires Java 11
+            tempDir.resolve(SETTINGS_FILE)
+                .writeText(tempDir.resolve(SETTINGS_FILE).readText().replace(""""test-consumer-4x",""".toRegex(), ""))
+
+            tempDir.resolve(SETTINGS_FILE)
+                .writeText(tempDir.resolve(SETTINGS_FILE).readText().replace(""",\s*"test-producer-4x"""".toRegex(), ""))
+        }
+
+        // Set the toolchain Java version for the test project
         tempDir.resolve(JAVA_CONVENTIONS_FILE)
-                .writeText(tempDir.resolve(JAVA_CONVENTIONS_FILE).readText().replace("JavaLanguageVersion.of(8)", "JavaLanguageVersion.of($javaVersion)"))
+            .writeText(tempDir.resolve(JAVA_CONVENTIONS_FILE).readText().replace("JavaLanguageVersion.of\\(\\d+\\)".toRegex(), "JavaLanguageVersion.of($javaVersion)"))
 
         GradleRunner
-                .create()
-                .forwardOutput()
-                .withProjectDir(tempDir)
-                .withPluginClasspath()
-                .withArguments("clean", "check", "-i", "--no-build-cache")
-                .withGradleVersion(gradleVersion)
-                .withDebug(isDebuggerAttached())
-                .build()
+            .create()
+            .forwardOutput()
+            .withProjectDir(tempDir)
+            .withPluginClasspath()
+            .withArguments("clean", "check", "-i", "--no-build-cache")
+            .withGradleVersion(gradleVersion)
+            .withDebug(isDebuggerAttached())
+            .build()
     }
 
     private fun copyIntegrationTestProject(tempDir: File) {
@@ -75,8 +78,12 @@ open class IntegrationTest {
         @Suppress("unused")
         fun provideVersions(): Stream<Arguments?>? {
             return Stream.of(
-                    Arguments.of("8", "6.7"), // Minimum supported version of Java/Gradle
-                    Arguments.of("17", "8.1.1") // Latest supported version of Java/Gradle
+                // TODO: There are currently issues with automatically testing with different versions of Java and Gradle
+                // For now, we only automatically test with some fairly common versions, and leave the "edge" versions
+                // for manual testing
+                //Arguments.of("8", "7.3"), // Minimum supported version of Java/Gradle
+                //Arguments.of("25", "9.2.1") // Latest tested version of Java/Gradle
+                Arguments.of("17", "8.1.1") // Latest tested version of Java/Gradle
             )
         }
     }

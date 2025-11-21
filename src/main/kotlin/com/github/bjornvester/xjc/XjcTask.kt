@@ -12,6 +12,7 @@ import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
+import org.gradle.util.GradleVersion
 import org.gradle.workers.WorkerExecutor
 import javax.inject.Inject
 
@@ -136,11 +137,10 @@ open class XjcTask @Inject constructor(
                 forkOptions.systemProperties["com.sun.tools.xjc.Options.findServices"] = ""
             }
 
-            // Set encoding (work-around for https://github.com/gradle/gradle/issues/13843)
-            // Might be fixed in Gradle 8.3 (unreleased at the time of this writing) - waiting to test it
-            //if (GradleVersion.current() < GradleVersion.version("8.3")) {
-            forkOptions.environment("LANG", System.getenv("LANG") ?: "C.UTF-8")
-            //}
+            // Set encoding in older version of Gradle (work-around for https://github.com/gradle/gradle/issues/13843)
+            if (GradleVersion.current() < GradleVersion.version("8.3")) {
+                forkOptions.environment("LANG", System.getenv("LANG") ?: "C.UTF-8")
+            }
 
             classpath.from(xjcClasspath)
         }

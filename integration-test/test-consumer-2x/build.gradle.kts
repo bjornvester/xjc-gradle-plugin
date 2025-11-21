@@ -14,8 +14,8 @@ dependencies {
     xjcBindings(project(":test-producer-2x"))
     xjcPlugins("org.jvnet.jaxb2_commons:jaxb2-basics:1.11.1")
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.1")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.1")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 tasks.test {
