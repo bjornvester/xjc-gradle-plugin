@@ -56,7 +56,7 @@ open class XjcTask @Inject constructor(
     @Optional
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
-    val bindingFiles = getXjcExtension().bindingFiles
+    val bindingFiles = objectFactory.fileCollection().from(getXjcExtension().bindingFiles)
 
     @get:Input
     val options: ListProperty<String> = objectFactory.listProperty(String::class.java).convention(getXjcExtension().options)

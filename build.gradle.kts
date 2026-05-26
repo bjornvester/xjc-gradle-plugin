@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.github.bjornvester"
-version = "1.9.0"
+version = "1.9.1"
 
 repositories {
     mavenCentral()
@@ -56,9 +56,8 @@ gradlePlugin {
             displayName = "Gradle XJC plugin"
             tags.set(listOf("xjc", "jaxb", "xsd"))
             description = """Changes:
-                |- New minimum version of Gradle is now 7.3 (previously 6.7)
-                |- XJC now defaults to JAXB 4.0 (previously 3.0)
-                |- Fixed an issue with parsing custom options containing multiple arguments.""".trimMargin()
+                |- Fixed an issue with binding files in groups being shared.
+                |- Bumped default XJC versions to latest patch releases.""".trimMargin()
         }
     }
 }

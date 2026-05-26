@@ -55,7 +55,7 @@ Here is a list of all available properties:
 | outputJavaDir              | DirectoryProperty          | "$buildDir/generated<br>/sources/xjc/java"             | The output directory for the generated Java sources.<br>Note that it will be deleted when running XJC.                                                                                                        |
 | outputResourcesDir         | DirectoryProperty          | "$buildDir/generated<br>/sources/xjc/resources"        | The output directory for the generated resources (if any).<br>Note that it will be deleted when running XJC.                                                                                                  |
 | useJakarta                 | Provider\<Boolean>         | true                                                   | Set to use the `jakarta` namespace. If false, uses the `javax` namespace. This value determines the default version of XJC and the JAXB binding provider.                                                     |
-| xjcVersion                 | Provider\<String>          | "4.0.6" for jakarta /<br> "2.3.9" for javax            | The version of XJC to use.                                                                                                                                                                                    |
+| xjcVersion                 | Provider\<String>          | "4.0.8" for jakarta /<br> "2.3.9" for javax            | The version of XJC to use.                                                                                                                                                                                    |
 | defaultPackage             | Provider\<String>          | \[not set\]                                            | The default package for the generated Java classes.<br>If empty, XJC will infer it from the namespace.                                                                                                        |
 | generateEpisode            | Provider\<Boolean>         | false                                                  | If true, generates an Episode file for the generated Java classes.                                                                                                                                            |
 | markGenerated              | Provider\<Boolean>         | false                                                  | If true, marks the generated code with the annotation `@javax.annotation.Generated`.                                                                                                                          |
@@ -108,7 +108,7 @@ You can set another version through the xjcVersion property like this:
 
 ```kotlin
 xjc {
-    xjcVersion.set("2.3.8")
+    xjcVersion.set("2.3.9")
     useJakarta.set(false)
 }
 ```
@@ -257,12 +257,16 @@ for the complete list (find the `parseArgument` method).
 To use third party plugins, supply the relevant dependencies to the `xjcPlugins` configuration.
 Then set the plugin options through the `options` property.
 
-For example, to use the "Copyable" plugin from the [JAXB2 Basics](https://github.com/highsource/jaxb2-basics) project,
-configure the following:
+For example, to use the "Copyable" plugin from the [JAXB2 Tools](https://github.com/highsource/jaxb-tools) project, configure the following:
 
 ```kotlin
 dependencies {
-    xjcPlugins("org.jvnet.jaxb2_commons:jaxb2-basics:0.13.1")
+    xjcPlugins("org.jvnet.jaxb:jaxb-plugins:4.0.11") // For JAXB 4.x
+    // xjcPlugins("org.jvnet.jaxb:jaxb-plugins:3.0.2") // For JAXB 3.x
+    // xjcPlugins("org.jvnet.jaxb:jaxb2-basics:2.0.15") // For JAXB 2.x
+
+    // Some plugins from JAXB-Tools require an additional compile- or runtime dependency:
+    // implementation("org.jvnet.jaxb:jaxb-plugins-runtime:4.0.11")
 }
 
 xjc {
@@ -270,12 +274,10 @@ xjc {
 }
 ```
 
-Note that the above plugin is only compatible with JAXB 2.x, at least at the time of this writing.
-There is a fork [here](https://github.com/patrodyne/hisrc-basicjaxb) that you may try for JAXB 3.x and the `jakarta`
-namespace.
+An alternative you may try is this one for Jakarta: https://github.com/patrodyne/hisrc-basicjaxb
 
 If you have trouble activating a plugin and is unsure whether it has been registered, you can run Gradle with the
---debug option.
+`--debug` option.
 This will print additional information on what plugins were found, what their option names are, and what plugins were
 activated.
 Note that in order to activate a third-party plugin, you must always provide at least one option (and usually just one)
@@ -287,13 +289,12 @@ By default, XJC will map date and time types to difficult-to-use Java types like
 If you like to use the newer Data/Time APIs from package java.time, you must use a mapper and write a custom binding
 file.
 
-An example of a mapper project is [threeten-jaxb](https://github.com/threeten-jaxb/threeten-jaxb), but there are others
-as well.
-If you like to use this one, include it as a dependency:
+An example of a mapper project is [threeten-jaxb](https://github.com/threeten-jaxb/threeten-jaxb), but there are others as well.
+If you like to use this one, include it as a dependency (the following is for Jakarta):
 
 ```kotlin
 dependencies {
-    implementation("io.github.threeten-jaxb:threeten-jaxb-core:2.2.0") // This version is for Jakarta
+    implementation("io.github.threeten-jaxb:threeten-jaxb-core:2.2.0")
 }
 ```
 
@@ -339,8 +340,6 @@ This makes no difference to XJC and you can choose whatever you like.
 
 ## Generate resources with different configurations
 
-_The grouping functionality described here requires Gradle 7.0 or higher_
-
 If you require building a subset of XSDs with different configurations (e.g. package names), you can use `group`
 property.
 Each group has the same configuration properties as otherwise, except for the XJC version as this can't be controlled
@@ -381,15 +380,14 @@ Here are some of the features I like to implement at some point.
 * Support for catalog files.
 * Support for optionally adding "if-exists" attributes to generated episode files to prevent failures on unreferenced
   schemas.
-* Document how to register multiple XJC tasks yourself in the same project (for instance for testing only)
+* Document how to register multiple XJC tasks yourself in the same project (for instance for schemas used only in tests)
 
 You are welcome to create issues and PRs for anything else.
-However, while I am probably not dead, I am not very active, and it can take years between development runs :(
+However, while I am probably not dead, I am not very active and it can take years between development runs :(
 
 ## Alternatives
 
 If you need additional functionality than what is provided here, you may want to try the one
 from [unbroken-dome](https://github.com/unbroken-dome/gradle-xjc-plugin).
 Just be aware that, at least at the time of this writing, the latest version is 2.0.0, which has some known issues with
-the jakarta dependencies and the Gradle
-configuration cache.
+the Jakarta dependencies and the Gradle configuration cache.
