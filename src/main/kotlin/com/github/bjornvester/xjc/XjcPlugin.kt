@@ -8,6 +8,7 @@ import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.kotlin.dsl.getByType
 import org.gradle.util.GradleVersion
 
 class XjcPlugin : Plugin<Project> {
@@ -78,7 +79,7 @@ class XjcPlugin : Plugin<Project> {
             xjcPluginsConfiguration.from(project.configurations.named(XJC_PLUGINS_CONFIGURATION_NAME))
             bindingFiles.setFrom(group.bindingFiles)
 
-            val sourceSets = project.properties["sourceSets"] as SourceSetContainer
+            val sourceSets = project.extensions.getByType<SourceSetContainer>()
 
             sourceSets.named(MAIN_SOURCE_SET_NAME) {
                 java.srcDir(outputJavaDir)
